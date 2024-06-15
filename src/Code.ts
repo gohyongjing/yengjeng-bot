@@ -1,7 +1,6 @@
 // https://core.telegram.org/bots/api
 
-const APP_VERSION = "0.1.0";
-
+/*
 var token = PropertiesService.getScriptProperties().getProperty('TELEGRAM_TOKEN');
 var telegramURL = "https://api.telegram.org/bot"+ token;
 var webAppURL = PropertiesService.getScriptProperties().getProperty('WEB_APP_URL');
@@ -211,4 +210,4 @@ function Get_Bus_Timing(busStopNo = "01113"){
   catch(e){
     SpreadsheetApp.openById(spreadsheetID).getSheets()[0].appendRow([new Date(), "Function Get_Bus_Timing", e])
   }
-}
+}*/
