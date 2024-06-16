@@ -1,5 +1,4 @@
 import { EnvironmentService } from './environment.service';
-import { Environment } from './environment.type';
 
 describe('EnvironmentService', () => {
   const originalEnv = process.env;
@@ -16,13 +15,13 @@ describe('EnvironmentService', () => {
 
   describe('get', () => {
     describe('when the environment variable is defined', () => {
-      const environment: Environment = {
-        MY_SECRET_VALUE: 'secret',
-        MY_SECRET_NUMBER: 12345,
+      const environment = {
+        keyA: 'valueA',
+        keyB: 'valueB',
       };
 
       beforeEach(() => {
-        process.env = environment as any;
+        process.env = environment;
       });
 
       it.each(Object.keys(environment) as (keyof typeof environment)[])(
@@ -39,13 +38,13 @@ describe('EnvironmentService', () => {
 
     describe('when the environment variable is not defined', () => {
       beforeEach(() => {
-        process.env = {} as any;
+        process.env = {};
       });
 
-      it('should return an undefined', () => {
-        const actual = underTest.get('NOT_DEFINED_VARIABLE' as any);
+      it('should return null', () => {
+        const actual = underTest.get('NOT_DEFINED_VARIABLE');
 
-        expect(actual).toBeUndefined();
+        expect(actual).toBeNull();
       });
     });
   });
