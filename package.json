@@ -25,7 +25,7 @@
     "lint:fix-all": "npm run lint:check-all -- --cache --fix",
     "lint:fix-file": "npm run lint:check-file -- --cache --fix",
     "prepare": "husky install",
-    "push": "clasp push",
+    "push": "npm run build && clasp push",
     "push:watch": "npm run push -- --watch",
     "test": "jest",
     "test:cov": "npm run test -- --coverage",

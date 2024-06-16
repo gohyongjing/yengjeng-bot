@@ -1,11 +1,11 @@
 import { ConfigService } from '@core/config';
-import { User } from './telegram.type';
+import { ResponseBody, User } from './telegram.type';
 
 export class TelegramService {
   token = new ConfigService<{ TELEGRAM_TOKEN: string }>().get('TELEGRAM_TOKEN');
   telegramURL = 'https://api.telegram.org/bot' + this.token;
 
-  getMe(): User {
+  getMe(): ResponseBody<User> {
     const URL = this.telegramURL + '/getMe';
     const response = UrlFetchApp.fetch(URL);
     Logger.log(response.getContentText());

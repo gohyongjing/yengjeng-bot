@@ -4,7 +4,6 @@ import { ConfigService } from './config.service';
 describe('PropertyService', () => {
   describe('get', () => {
     type Properties = {
-      ENV: string;
       keyA: string;
       keyB: string;
       keyC: string;
@@ -12,21 +11,10 @@ describe('PropertyService', () => {
       keyE: string;
     };
 
-    let originalEnv = process.env;
     let underTest: ConfigService<Properties>;
-
-    beforeEach(() => {
-      originalEnv = process.env;
-      process.env = {};
-    });
-
-    afterEach(() => {
-      process.env = originalEnv;
-    });
 
     describe('dotenv', () => {
       const properties = {
-        ENV: 'dev',
         keyA: 'valueA',
         keyB: 'valueB',
       };
@@ -36,7 +24,7 @@ describe('PropertyService', () => {
         underTest = new ConfigService();
       });
 
-      describe('when the property is defined', () => {
+      describe('when the variable is defined', () => {
         it.each(Object.keys(properties))(
           'should return the value of the variable called %s',
           (rawKey) => {
@@ -50,7 +38,7 @@ describe('PropertyService', () => {
         );
       });
 
-      describe('when the property is not defined', () => {
+      describe('when the variable is not defined', () => {
         it('should fail fast and throw an exception', () => {
           expect(() => underTest.get('keyE')).toThrow();
         });
@@ -58,21 +46,30 @@ describe('PropertyService', () => {
     });
 
     describe('PropertiesService', () => {
+      let originalProcess = process;
       const properties = {
-        ENV: 'dev',
         keyC: 'valueC',
         keyD: 'valueD',
       };
 
-      beforeEach(() => {
+      beforeAll(() => {
         global.PropertiesService = MockPropertiesService;
         MockPropertiesService.getScriptProperties().setProperties(properties);
-        underTest = new ConfigService();
+
+        originalProcess = process;
+        //@ts-ignore Allow deleting non-optional global variable for testing purposes
+        delete global.process;
       });
 
-      afterEach(() => {
+      afterAll(() => {
         //@ts-ignore Allow deleting non-optional global variable for testing purposes
         delete global.PropertiesService;
+
+        global.process = originalProcess;
+      });
+
+      beforeEach(() => {
+        underTest = new ConfigService();
       });
 
       describe('when the property is defined', () => {
@@ -93,12 +90,6 @@ describe('PropertyService', () => {
         it('should fail fast and throw an exception', () => {
           expect(() => underTest.get('keyE')).toThrow();
         });
-      });
-    });
-
-    describe('no environment set up', () => {
-      it('should fail fast and throw an exception', () => {
-        expect(() => new ConfigService()).toThrow();
       });
     });
   });

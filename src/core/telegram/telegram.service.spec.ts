@@ -5,7 +5,7 @@ import {
 } from '@core/googleAppsScript';
 import { TelegramService } from './telegram.service';
 import { Builder } from '@core/util/builder';
-import { User } from './telegram.type';
+import { ResponseBody, User } from './telegram.type';
 
 describe('TelegramService', () => {
   describe('getMe', () => {
@@ -24,12 +24,15 @@ describe('TelegramService', () => {
                 .with({
                   getContentText: jest.fn(() => {
                     if (url.endsWith('getMe')) {
-                      const user: User = {
-                        id: 123,
-                        is_bot: false,
-                        first_name: 'John Doe',
+                      const responseBody: ResponseBody<User> = {
+                        ok: true,
+                        result: {
+                          id: 123,
+                          is_bot: false,
+                          first_name: 'John Doe',
+                        },
                       };
-                      return JSON.stringify(user);
+                      return JSON.stringify(responseBody);
                     }
                     return '';
                   }),
@@ -49,9 +52,13 @@ describe('TelegramService', () => {
 
     it('should return the value of the variable called %s', () => {
       const actual = underTest.getMe();
-      expect(Object.keys(actual).includes('id')).toBeTruthy();
-      expect(Object.keys(actual).includes('is_bot')).toBeTruthy();
-      expect(Object.keys(actual).includes('first_name')).toBeTruthy();
+      if (!actual.ok) {
+        throw "Response body contains '{ok: false}'";
+      }
+      const resultKeys = Object.keys(actual.result);
+      expect(resultKeys.includes('id')).toBeTruthy();
+      expect(resultKeys.includes('is_bot')).toBeTruthy();
+      expect(resultKeys.includes('first_name')).toBeTruthy();
     });
   });
 });

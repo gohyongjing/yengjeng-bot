@@ -12,22 +12,22 @@ export class ConfigService<T> {
   constructor() {
     this.propertyService = new PropertyService();
     this.environmentService = new EnvironmentService();
+    this.env = this.getEnvironment();
+  }
 
-    if (this.environmentService.get('ENV') !== null) {
-      this.env = 'dev';
-    } else {
+  getEnvironment(): 'dev' | 'prod' {
+    try {
+      process;
+    } catch {
       try {
         PropertiesService;
       } catch (e) {
         console.error(this.ERR_NO_CONFIG);
         throw e;
       }
-      if (this.propertyService.get('ENV') !== null) {
-        this.env = 'prod';
-      } else {
-        throw this.ERR_NO_CONFIG;
-      }
+      return 'prod';
     }
+    return 'dev';
   }
 
   get<Key extends keyof T>(key: Key): string {

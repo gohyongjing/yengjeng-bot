@@ -1,6 +1,7 @@
 function getProperties(properties: { [key: string]: string }) {
   const result = {
     getProperty: (key: string): string | null => {
+      console.log(`getting property ${key} ${properties[key]}`);
       const entry = Object.entries(properties).find(
         (entry) => entry[0] === key,
       );

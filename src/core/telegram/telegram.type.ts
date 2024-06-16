@@ -1,3 +1,16 @@
+/**
+ * Based on the response body described in https://core.telegram.org/bots/api#making-requests
+ */
+export type ResponseBody<T> =
+  | {
+      ok: true;
+      result: T;
+    }
+  | {
+      ok: false;
+      description: string;
+    };
+
 export type User = {
   id: number;
   is_bot: boolean;
