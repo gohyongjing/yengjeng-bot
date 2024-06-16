@@ -1,4 +1,4 @@
-import { MockPropertiesService } from './PropertiesService.mock';
+import { MockPropertiesService } from '@core/googleAppsScript';
 import { PropertyService } from './property.service';
 
 describe('PropertyService', () => {

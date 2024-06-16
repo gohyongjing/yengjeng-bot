@@ -11,5 +11,5 @@
  * if the variable is not set, and avoid that error when testing it.
  */
 
-process.env.MY_SECRET_VALUE = 'MY_SECRET_VALUE';
-process.env.MY_SECRET_NUMBER = 12345;
+// eslint-disable-next-line node/no-extraneous-require
+require('dotenv').config();

@@ -1,4 +1,4 @@
-import { MockPropertiesService } from '@core/properties';
+import { MockPropertiesService } from '@core/googleAppsScript';
 import { ConfigService } from './config.service';
 
 describe('PropertyService', () => {
@@ -12,11 +12,19 @@ describe('PropertyService', () => {
       keyE: string;
     };
 
+    let originalEnv = process.env;
     let underTest: ConfigService<Properties>;
 
-    describe('dotenv', () => {
-      const originalEnv = process.env;
+    beforeEach(() => {
+      originalEnv = process.env;
+      process.env = {};
+    });
 
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
+    describe('dotenv', () => {
       const properties = {
         ENV: 'dev',
         keyA: 'valueA',
@@ -26,10 +34,6 @@ describe('PropertyService', () => {
       beforeEach(() => {
         process.env = properties;
         underTest = new ConfigService();
-      });
-
-      afterEach(() => {
-        process.env = originalEnv;
       });
 
       describe('when the property is defined', () => {
@@ -46,7 +50,7 @@ describe('PropertyService', () => {
         );
       });
 
-      describe('when the property is no defined', () => {
+      describe('when the property is not defined', () => {
         it('should fail fast and throw an exception', () => {
           expect(() => underTest.get('keyE')).toThrow();
         });
@@ -85,7 +89,7 @@ describe('PropertyService', () => {
         );
       });
 
-      describe('when the property is no defined', () => {
+      describe('when the property is not defined', () => {
         it('should fail fast and throw an exception', () => {
           expect(() => underTest.get('keyE')).toThrow();
         });
@@ -94,10 +98,7 @@ describe('PropertyService', () => {
 
     describe('no environment set up', () => {
       it('should fail fast and throw an exception', () => {
-        expect(() => {
-          const service = new ConfigService();
-          console.log(`TYPE: ${service.env}`);
-        }).toThrow();
+        expect(() => new ConfigService()).toThrow();
       });
     });
   });

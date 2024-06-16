@@ -2,6 +2,9 @@ import { EnvironmentService } from '@core/environment';
 import { PropertyService } from '@core/properties';
 
 export class ConfigService<T> {
+  private ERR_NO_CONFIG =
+    'Both environment variables and property service not found. Please set process.env' +
+    ".ENV to 'DEV' or GoogleAppsScript.PropertiesService.ScriptService.ENV to PROD";
   private propertyService: PropertyService;
   private environmentService: EnvironmentService;
   env: 'dev' | 'prod';
@@ -16,15 +19,13 @@ export class ConfigService<T> {
       try {
         PropertiesService;
       } catch (e) {
-        console.log(
-          "Both environment variables and property service not found. Please set process.env.ENV to 'DEV' or GoogleAppsScript.PropertiesService.ScriptService.ENV to PROD",
-        );
+        console.error(this.ERR_NO_CONFIG);
         throw e;
       }
       if (this.propertyService.get('ENV') !== null) {
         this.env = 'prod';
       } else {
-        throw "Both environment variables and property service not found. Please set process.env.ENV to 'DEV' or GoogleAppsScript.PropertiesService.ScriptService.ENV to PROD";
+        throw this.ERR_NO_CONFIG;
       }
     }
   }
