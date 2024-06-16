@@ -35,7 +35,9 @@ const eslintConfig = {
           rules: {
             'node/no-unpublished-import': 'off',
             'node/no-extraneous-import': 'error',
+            '@typescript-eslint/ban-ts-comment': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
+            '@typescript-eslint/no-unused-vars': 'off',
           },
         },
       ],
