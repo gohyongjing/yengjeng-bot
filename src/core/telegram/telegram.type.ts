@@ -25,3 +25,20 @@ export type User = {
   supports_inline_queries?: boolean;
   can_connect_to_business?: boolean;
 };
+
+export type Chat = {
+  id: number;
+  type: 'private' | 'group' | 'supergroup' | 'channel';
+  title?: string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  is_forum?: true;
+};
+
+export type Message = {
+  message_id: number;
+  message_thread_id?: number;
+  from?: User;
+  sender_chat?: Chat;
+};

@@ -1,27 +1,32 @@
 import { ConfigService } from '@core/config';
 import { ResponseBody, User } from './telegram.type';
+import { TelegramConfig } from './telegram.config';
 
 export class TelegramService {
-  token = new ConfigService<{ TELEGRAM_TOKEN: string }>().get('TELEGRAM_TOKEN');
+  configService = new ConfigService<TelegramConfig>();
+  token = this.configService.get('TELEGRAM_TOKEN');
+  webAppURL = this.configService.get('WEB_APP_URL');
   telegramURL = 'https://api.telegram.org/bot' + this.token;
 
   getMe(): ResponseBody<User> {
-    const URL = this.telegramURL + '/getMe';
-    const response = UrlFetchApp.fetch(URL);
+    const url = `${this.telegramURL}/getMe`;
+    const response = UrlFetchApp.fetch(url);
     Logger.log(response.getContentText());
     return JSON.parse(response.getContentText());
   }
 
-  // function setWebhook(){
-  //   var URL = telegramURL + "/setWebhook?url=" + webAppURL;
-  //   var response = UrlFetchApp.fetch(URL);
-  //   Logger.log(response.getContentText());
-  // }
+  setWebhook(): ResponseBody<boolean> {
+    const url = `${this.telegramURL}/setWebhook?url=${this.webAppURL}`;
+    const response = UrlFetchApp.fetch(url);
+    Logger.log(response.getContentText());
+    return JSON.parse(response.getContentText());
+  }
 
-  // function sendText(id, text){
+  // sendMessage(chat_id: string, text: string): ResponseBody<Message> {
   //   var encodedText = encodeURIComponent(text) //encodes the text so that escape characters send properly as a message (e.g. allows the use of \n)
-  //   var URL = telegramURL + "/sendMessage?chat_id=" + id + "&text=" + encodedText + "&parsemode=" + "Markdown";
-  //   var response = UrlFetchApp.fetch(URL);
+  //   var url = this.telegramURL + "/sendMessage?chat_id=" + chat_id + "&text=" + encodedText + "&parsemode=" + "Markdown";
+  //   var response = UrlFetchApp.fetch(url);
   //   Logger.log(response.getContentText());
+  //   return JSON.parse(response.getContentText());
   // }
 }
