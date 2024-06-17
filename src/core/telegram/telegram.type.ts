@@ -11,6 +11,10 @@ export type ResponseBody<T> =
       description: string;
     };
 
+/**
+ * Based on the data types described in https://core.telegram.org/bots/api#available-types
+ */
+
 export type User = {
   id: number;
   is_bot: boolean;
@@ -41,4 +45,18 @@ export type Message = {
   message_thread_id?: number;
   from?: User;
   sender_chat?: Chat;
+  sender_boost_count?: number;
+  sender_buisness_bot?: User;
+  date: number;
+  buisness_connection_id?: string;
+  chat: Chat;
 };
+
+export type Update = {
+  update_id: number;
+} & (
+  | { message: Message }
+  | { editedMessage: Message }
+  | { channel_post: Message }
+  | { edited_channel_post: Message }
+);
