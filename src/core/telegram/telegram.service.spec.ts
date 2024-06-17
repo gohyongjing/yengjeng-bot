@@ -41,7 +41,7 @@ describe('TelegramService', () => {
     it('should return sent message', () => {
       const expectedMessage = 'Hello';
       const actual = underTest.sendMessage({
-        chat_id: '123',
+        chatId: 123,
         text: expectedMessage,
       });
       if (!actual.ok) {

@@ -25,16 +25,16 @@ export class TelegramService {
   }
 
   sendMessage({
-    chat_id,
+    chatId,
     text,
     parseMode = 'Markdown',
   }: {
-    chat_id: string;
+    chatId: number;
     text: string;
     parseMode?: 'Markdown';
   }): ResponseBody<Message> {
     const encodedText = encodeURIComponent(text);
-    const url = `${this.telegramURL}/sendMessage?chat_id=${chat_id}&text=${encodedText}&parsemode=${parseMode}`;
+    const url = `${this.telegramURL}/sendMessage?chat_id=${chatId}&text=${encodedText}&parsemode=${parseMode}`;
     return this.fetchAndLog(url);
   }
 }
