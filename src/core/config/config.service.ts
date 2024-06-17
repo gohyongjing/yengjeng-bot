@@ -7,7 +7,7 @@ export class ConfigService<T> {
     ".ENV to 'DEV' or GoogleAppsScript.PropertiesService.ScriptService.ENV to PROD";
   private propertyService: PropertyService;
   private environmentService: EnvironmentService;
-  env: 'dev' | 'prod';
+  private env: 'dev' | 'prod';
 
   constructor() {
     this.propertyService = new PropertyService();

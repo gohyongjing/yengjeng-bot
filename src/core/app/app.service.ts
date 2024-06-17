@@ -2,7 +2,7 @@ import { Message, Update } from '@core/telegram';
 import { hasKey } from '@core/util/predicates';
 
 export class App {
-  receiveUpdate(update: Update) {
+  processUpdate(update: Update) {
     if (hasKey(update, 'message')) {
       this.handleMessageUpdate(update.message);
     } else {

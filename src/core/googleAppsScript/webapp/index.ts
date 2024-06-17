@@ -1,1 +1,1 @@
-export * from './webapp.types';
+export * from './webapp.type';
