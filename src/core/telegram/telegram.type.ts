@@ -50,6 +50,7 @@ export type Message = {
   date: number;
   buisness_connection_id?: string;
   chat: Chat;
+  text?: string;
 };
 
 export type Update = {
