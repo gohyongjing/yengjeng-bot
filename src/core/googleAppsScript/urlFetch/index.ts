@@ -1,3 +1,3 @@
-export * from './HTTPResponse.mock';
-export * from './UrlFetchApp.mock';
-export * from './UrlFetchRequest.mock';
+export * from './httpResponse.mock';
+export * from './urlFetchApp.mock';
+export * from './urlFetchRequest.mock';

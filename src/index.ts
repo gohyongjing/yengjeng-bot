@@ -3,16 +3,9 @@ import { WebAppEvent } from '@core/googleAppsScript';
 import { LoggerService } from '@core/logger';
 import { TelegramService, isUpdate } from '@core/telegram';
 
-let app: App;
-let loggerService: LoggerService;
-let telegramService: TelegramService;
-
 // @ts-ignore
 function main(): void {
-  app = new App();
-  loggerService = new LoggerService();
-  telegramService = new TelegramService();
-  telegramService.setWebhook();
+  new TelegramService().setWebhook();
 
   Logger.log({ doPost });
   Logger.log('Yeng Jeng Bot ready!');
@@ -25,12 +18,13 @@ function main(): void {
  * @param e Web App event
  */
 function doPost(e: WebAppEvent) {
+  const loggerService = new LoggerService();
   try {
     const update = JSON.parse(e.postData.contents);
     if (!isUpdate(update)) {
       loggerService.warn(`Not a telegram update! ${e.postData.contents}`);
     } else {
-      app.processUpdate(update);
+      new App().processUpdate(update);
     }
   } catch (e) {
     loggerService.error(e);
