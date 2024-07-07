@@ -34,7 +34,7 @@ export class App {
     if (text === '/start') {
       const responseText = `Hello ${
         message.chat.first_name ?? ''
-      }! This is Yeng Jeng Bot!`;
+      }\\! This is Yeng Jeng Bot!`;
       this.telegramService.sendMessage({ chatId, text: responseText });
     } else if (text === '/version') {
       const responseText = `Yeng Jeng Bot\n${VersionService.getVersion()}`;
@@ -45,7 +45,7 @@ export class App {
       this.telegramService.sendMessage({
         chatId,
         text:
-          '----- HELP -----\n' +
+          '*HELP*\n' +
           'BUS [BUS NUMBER]: Gets the bus stop timings for the bus stop with bus stop number. For example, type BUS 12345\n' +
           'BUS : Type BUS without a bus stop number to get the timings for the previously requested bus stop.',
       });

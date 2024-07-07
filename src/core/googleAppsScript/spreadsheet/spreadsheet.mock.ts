@@ -101,7 +101,7 @@ export const MockSpreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet = {
     _numRows: GoogleAppsScript.Integer,
     _numColumns: GoogleAppsScript.Integer,
   ) => [],
-  getSheets: () => [],
+  getSheets: () => [MockSheet, MockSheet],
   getSpreadsheetLocale: () => '',
   getSpreadsheetTheme: () => null,
   getSpreadsheetTimeZone: () => '',

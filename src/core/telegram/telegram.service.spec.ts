@@ -1,4 +1,4 @@
-import { MockLogger } from '@core/googleAppsScript';
+import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { TelegramService } from './telegram.service';
 import { MockTelegramUrlFetchApp } from './telegram.mock';
 
@@ -7,6 +7,7 @@ describe('TelegramService', () => {
 
   beforeAll(() => {
     global.Logger = MockLogger;
+    global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 

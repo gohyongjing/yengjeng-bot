@@ -2,13 +2,29 @@ import { App } from '@core/app';
 import { WebAppEvent } from '@core/googleAppsScript';
 import { LoggerService } from '@core/logger';
 import { TelegramService, isUpdate } from '@core/telegram';
+import { VersionService } from '@features/version';
 
 // @ts-ignore
 function main(): void {
   new TelegramService().setWebhook();
 
-  Logger.log({ doPost });
+  Logger.log({ doGet, doPost });
   Logger.log('Yeng Jeng Bot ready!');
+}
+
+/**
+ * Google Apps Script runs the doGet method when receiveing a get request for the web app.
+ * https://developers.google.com/apps-script/guides/web
+ *
+ * @param e Web App event
+ */
+function doGet(_e: WebAppEvent) {
+  const loggerService = new LoggerService();
+  try {
+    return `Yeng Jeng Bot ${VersionService.getVersion()}`;
+  } catch (e) {
+    loggerService.error(e);
+  }
 }
 
 /**

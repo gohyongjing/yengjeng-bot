@@ -34,11 +34,45 @@ function setWebhook(): string {
   return JSON.stringify(responseBody);
 }
 
+function canParseMarkdownV2(encodedText: string) {
+  const text = decodeURIComponent(encodedText);
+  let parenthesisCount = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charAt(i);
+    const prevCh = i - 1 !== -1 ? text.charAt(i - 1) : null;
+    const nextCh = i + 1 !== text.length ? text.charAt(i + 1) : null;
+
+    const isEscaped = prevCh === '\\';
+    if (isEscaped) {
+      continue;
+    } else if (ch === '-') {
+      return false;
+    } else if (ch === '!') {
+      if (nextCh !== '[') {
+        return false;
+      }
+    } else if (ch === '|') {
+      if (prevCh !== '|' && nextCh !== '|') {
+        return false;
+      }
+    } else if (ch === '(') {
+      parenthesisCount += 1;
+    } else if (ch === ')') {
+      parenthesisCount -= 1;
+    }
+  }
+
+  return parenthesisCount === 0;
+}
+
 function sendMessage(url: string): string {
   const textQuery = 'text=';
   const startIndex = url.indexOf(textQuery) + textQuery.length;
   const endIndex = url.indexOf('&', startIndex);
   const text = url.substring(startIndex, endIndex);
+
+  const isValid = canParseMarkdownV2(text);
+  expect(isValid).toBeTruthy();
   const responseBody: ResponseBody<Message> = {
     ok: true,
     result: new Builder(MockMessage).with({ text }).build(),

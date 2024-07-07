@@ -1,3 +1,4 @@
+export * from './banding.mock';
 export * from './cellImage.mock';
 export * from './cellImageBuilder.mock';
 export * from './colorBuilder.mock';
