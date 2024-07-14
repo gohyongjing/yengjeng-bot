@@ -1,12 +1,19 @@
 import { hasKey } from '@core/util/predicates';
-import { MockBusArrivalResponseBody, MockLTAUrlFetchApp } from './bus.mock';
+import {
+  MockBusArrivalResponseBody,
+  MockBusDetails,
+  MockBusServiceDetails,
+  MockLTAUrlFetchApp,
+} from './bus.mock';
 import { BusService } from './bus.service';
 import { MockSpreadsheetApp, MockUrlFetchApp } from '@core/googleAppsScript';
 import { constants } from './bus.constants';
 import { Builder } from '@core/util/builder';
 import {
+  canParseMarkdownV2,
   MockMessage,
   MockTelegramUrlFetchApp,
+  sendMessage,
 } from '@core/telegram/telegram.mock';
 
 describe('BusService', () => {
@@ -30,6 +37,7 @@ describe('BusService', () => {
 
   beforeEach(() => {
     underTest = new BusService();
+    jest.clearAllMocks();
   });
 
   describe('getBusArrivals', () => {
@@ -68,45 +76,21 @@ describe('BusService', () => {
     });
   });
 
-  describe('formatBusArrivals', () => {
-    describe('valid bus stop code', () => {
-      it('should return the bus arrival details', () => {
-        const actual = underTest.formatBusArrivals(MockBusArrivalResponseBody);
-        const arrivalTimes = actual.split('\n')[0].split(' ').slice(1);
-
+  describe('formatBusArrivalHeader', () => {
+    describe('bus services available', () => {
+      it('should return bus stop details', () => {
+        const actual = underTest.formatBusArrivalHeader(
+          MockBusArrivalResponseBody,
+        );
         expect(
           actual.includes(MockBusArrivalResponseBody.BusStopCode),
         ).toBeTruthy();
-        expect(
-          actual.includes(
-            (MockBusArrivalResponseBody.Services ?? [])[0].ServiceNo,
-          ),
-        ).toBeTruthy();
-        for (const arrivalTime of arrivalTimes) {
-          expect(arrivalTime.includes('.')).toBeFalsy();
-        }
-      });
-
-      it('should return the bus arrival timing as a non-negative integer', () => {
-        const actual = underTest.formatBusArrivals(MockBusArrivalResponseBody);
-        const arrivalTimes = actual
-          .split('\n')[2]
-          .split(' ')
-          .filter((s) => s.length > 0 && !['\\-', '\\|', ':', ','].includes(s))
-          .slice(1);
-
-        for (const arrivalTime of arrivalTimes) {
-          expect(parseInt(arrivalTime, 10).toString()).toStrictEqual(
-            arrivalTime,
-          );
-          expect(parseInt(arrivalTime, 10)).toBeGreaterThanOrEqual(0);
-        }
       });
     });
 
     describe('no bus services available', () => {
       it('should return no buses found message', () => {
-        const actual = underTest.formatBusArrivals(
+        const actual = underTest.formatBusArrivalHeader(
           new Builder(MockBusArrivalResponseBody)
             .with({ Services: [] })
             .build(),
@@ -118,7 +102,7 @@ describe('BusService', () => {
 
     describe('invalid bus stop code', () => {
       it('should return invalid bus code message', () => {
-        const actual = underTest.formatBusArrivals({
+        const actual = underTest.formatBusArrivalHeader({
           'odata.metadata': 'metadata',
           BusStopCode: '13579',
         });
@@ -128,34 +112,96 @@ describe('BusService', () => {
     });
   });
 
+  describe('formatBusArrivalTimings', () => {
+    it('should return the bus arrival details', () => {
+      const actual = underTest.formatBusArrivalTimings([MockBusServiceDetails]);
+      expect(
+        actual.includes(
+          (MockBusArrivalResponseBody.Services ?? [])[0].ServiceNo,
+        ),
+      ).toBeTruthy();
+    });
+
+    it('should return the bus service number', () => {
+      const actual = underTest.formatBusArrivalTimings([
+        new Builder(MockBusServiceDetails)
+          .with({
+            NextBus: MockBusDetails,
+            NextBus2: MockBusDetails,
+            NextBus3: MockBusDetails,
+          })
+          .build(),
+      ]);
+
+      const arrivalTimes = actual
+        .split('\n')[0]
+        .split('\\|')
+        .filter((s) => s.length > 0 && !['\\-', '\\|', ':', ','].includes(s))
+        .slice(1);
+      for (const arrivalTime of arrivalTimes) {
+        expect(arrivalTime.includes('.')).toBeFalsy();
+        expect(parseInt(arrivalTime, 10).toString().trim()).toStrictEqual(
+          arrivalTime.trim(),
+        );
+        expect(parseInt(arrivalTime, 10)).toBeGreaterThanOrEqual(0);
+      }
+    });
+  });
+
   describe('processMessage', () => {
     describe('valid bus stop code', () => {
       it('should return the bus arrival details', () => {
-        const actual = underTest.processMessage(
+        underTest.processMessage(
           new Builder(MockMessage).with({ text: 'bus 83139' }).build(),
         );
 
-        expect(actual).toBeUndefined();
+        expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
+        expect(sendMessage.mock.calls[1][0].includes('15')).toBeTruthy();
+        expect(sendMessage.mock.calls[1][0].includes('150')).toBeTruthy();
+        expect(sendMessage.mock.calls[1][0].includes('155')).toBeTruthy();
+        expect(
+          canParseMarkdownV2.mock.results.every(
+            (result) => result.value === true,
+          ),
+        ).toBeTruthy();
       });
     });
 
     describe('no bus services available', () => {
       it('should return no buses found message', () => {
-        const actual = underTest.processMessage(
+        underTest.processMessage(
           new Builder(MockMessage).with({ text: 'bus 123' }).build(),
         );
 
-        expect(actual).toBeUndefined();
+        expect(
+          sendMessage.mock.calls[1][0].includes(
+            encodeURIComponent(constants.MSG_NO_BUSES),
+          ),
+        ).toBeTruthy();
+        expect(
+          canParseMarkdownV2.mock.results.every(
+            (result) => result.value === true,
+          ),
+        ).toBeTruthy();
       });
     });
 
     describe('invalid bus stop code', () => {
       it('should return invalid bus code message', () => {
-        const actual = underTest.processMessage(
+        underTest.processMessage(
           new Builder(MockMessage).with({ text: 'bus abc' }).build(),
         );
 
-        expect(actual).toBeUndefined();
+        expect(
+          sendMessage.mock.calls[1][0].includes(
+            encodeURIComponent(constants.MSG_INVALID_BUS_CODE),
+          ),
+        ).toBeTruthy();
+        expect(
+          canParseMarkdownV2.mock.results.every(
+            (result) => result.value === true,
+          ),
+        ).toBeTruthy();
       });
     });
   });

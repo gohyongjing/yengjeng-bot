@@ -1,6 +1,6 @@
 import { MockHTTPResponse, MockUrlFetchApp } from '@core/googleAppsScript';
 import { Builder } from '@core/util/builder';
-import { Chat, Message, ResponseBody, User } from './telegram.type';
+import { Chat, Message, ResponseBody, Update, User } from './telegram.type';
 
 export const MockChat: Chat = {
   id: 123,
@@ -12,6 +12,11 @@ export const MockMessage: Message = {
   date: 1,
   chat: MockChat,
   text: 'Hello World!',
+};
+
+export const MockUpdate: Update = {
+  update_id: 1,
+  message: MockMessage,
 };
 
 function getMe(): string {
@@ -34,7 +39,7 @@ function setWebhook(): string {
   return JSON.stringify(responseBody);
 }
 
-function canParseMarkdownV2(encodedText: string) {
+export const canParseMarkdownV2 = jest.fn((encodedText: string) => {
   const text = decodeURIComponent(encodedText);
   let parenthesisCount = 0;
   for (let i = 0; i < text.length; i++) {
@@ -45,14 +50,17 @@ function canParseMarkdownV2(encodedText: string) {
     const isEscaped = prevCh === '\\';
     if (isEscaped) {
       continue;
-    } else if (ch === '-') {
+    } else if (ch === '-' || ch === '.') {
+      console.log(`markdown contains Unescaped ${ch}`);
       return false;
     } else if (ch === '!') {
       if (nextCh !== '[') {
+        console.log("markdown contains Unescaped '!'");
         return false;
       }
     } else if (ch === '|') {
       if (prevCh !== '|' && nextCh !== '|') {
+        console.log("markdown contains Unescaped '|'");
         return false;
       }
     } else if (ch === '(') {
@@ -61,24 +69,31 @@ function canParseMarkdownV2(encodedText: string) {
       parenthesisCount -= 1;
     }
   }
-
+  if (parenthesisCount !== 0) {
+    console.log("markdown contains Unescaped '(' or ')'");
+  }
   return parenthesisCount === 0;
-}
+});
 
-function sendMessage(url: string): string {
+export const sendMessage = jest.fn((url: string): string => {
   const textQuery = 'text=';
   const startIndex = url.indexOf(textQuery) + textQuery.length;
   const endIndex = url.indexOf('&', startIndex);
   const text = url.substring(startIndex, endIndex);
 
-  const isValid = canParseMarkdownV2(text);
-  expect(isValid).toBeTruthy();
+  if (canParseMarkdownV2(text)) {
+    const responseBody: ResponseBody<Message> = {
+      ok: true,
+      result: new Builder(MockMessage).with({ text }).build(),
+    };
+    return JSON.stringify(responseBody);
+  }
   const responseBody: ResponseBody<Message> = {
-    ok: true,
-    result: new Builder(MockMessage).with({ text }).build(),
+    ok: false,
+    description: 'invalid markdown',
   };
   return JSON.stringify(responseBody);
-}
+});
 
 export const MockTelegramUrlFetchApp = new Builder(MockUrlFetchApp)
   .with({

@@ -21,7 +21,7 @@ function main(): void {
 function doGet(_e: WebAppEvent) {
   const loggerService = new LoggerService();
   try {
-    return `Yeng Jeng Bot ${VersionService.getVersion()}`;
+    return `Yeng Jeng Bot ${new VersionService().getVersion()}`;
   } catch (e) {
     loggerService.error(e);
   }

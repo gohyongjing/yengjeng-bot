@@ -1,20 +1,27 @@
 import { ConfigService } from '@core/config';
 import { SpreadsheetService } from '@core/spreadsheet';
-import { Message, TelegramService } from '@core/telegram';
+import { Message, TelegramService, Update } from '@core/telegram';
 import { BusConfig } from './bus.config';
-import { BusArrivalResponse, ResponseBody } from './bus.type';
+import {
+  BusArrivalResponse,
+  BusServiceDetails,
+  ResponseBody,
+} from './bus.type';
 import { constants } from './bus.constants';
 import { LoggerService } from '@core/logger';
 import { Options, UrlFetchService } from '@core/urlFetch';
 import { hasKey } from '@core/util/predicates';
+import { AppService } from '@core/appService';
+import { Command } from '@core/util/command';
 
-export class BusService {
+export class BusService extends AppService {
+  override APP_SERVICE_COMMAND_WORD = 'bus';
+
   TABLE_HEADERS = [
-    'Service No',
-    'Next Bus \\(mins\\)',
-    '2nd Bus \\(mins\\)',
-    '3rd Bus \\(mins\\)',
+    ['Bus No', 'Next Bus', '2nd Bus', '3rd Bus'],
+    ['', '\\(mins\\)', '\\(mins\\)', '\\(mins\\)'],
   ];
+  TABLE_COLUMN_WIDTH = 9;
 
   configService: ConfigService<BusConfig>;
   loggerService: LoggerService;
@@ -23,10 +30,25 @@ export class BusService {
   SHEET_INDEX = 1;
 
   constructor() {
+    super();
     this.configService = new ConfigService();
     this.loggerService = new LoggerService();
     this.spreadsheetService = new SpreadsheetService();
     this.telegramService = new TelegramService();
+  }
+
+  async processUpdate(update: Update) {
+    if (hasKey(update, 'message')) {
+      this.processMessage(update.message);
+    }
+  }
+
+  override help(): string {
+    return (
+      '*BUS*\n' +
+      'BUS [BUS NUMBER]: Gets the bus stop timings for the bus stop with bus stop number\\. For example, type BUS 12345\n' +
+      'BUS : Type BUS without a bus stop number to get the timings for the previously requested bus stop\\.'
+    );
   }
 
   processMessage(message: Message) {
@@ -37,10 +59,7 @@ export class BusService {
     });
 
     const text = message.text ?? '';
-    const tokens = text
-      .split(' ')
-      .filter((s) => s.length > 0)
-      .map((s) => s.trim());
+    const command = new Command(text);
 
     const userSpreadsheet = this.spreadsheetService.open();
     const userSheet = userSpreadsheet.getSheets()[this.SHEET_INDEX];
@@ -52,47 +71,44 @@ export class BusService {
       ? userSheet.getRange(`A${userCell.getRow()}:D${userCell.getRow()}`)
       : null;
 
-    const busStopId = this.getBusStopId(tokens, userRow);
+    const busStopId =
+      command.positionalArgs[0] ?? this.getSavedBusStopId(userRow) ?? '04167';
+    let response = [constants.MSG_INVALID_BUS_CODE];
+
     const isValidBusStopId = /^\d+$/.test(busStopId);
-    const response = isValidBusStopId
-      ? this.formatBusArrivals(this.getBusArrivals(busStopId))
-      : 'Invalid bus stop number\\!';
+    if (isValidBusStopId) {
+      const busArrivals = this.getBusArrivals(busStopId);
+      response = ['```'];
+      response.push(this.formatBusArrivalHeader(busArrivals));
+      response.push(this.formatBusArrivalTimings(busArrivals.Services ?? []));
+      response.push('```');
+    }
 
-    this.telegramService.sendMessage({ chatId, text: response });
+    this.telegramService.sendMessage({ chatId, text: response.join('\n') });
 
-    if (tokens.length === 2 && isValidBusStopId) {
+    if (command.positionalArgs[0] !== undefined && isValidBusStopId) {
       if (userRow === null) {
         userSheet.appendRow([
           chatId,
           message.from?.first_name ?? '',
-          tokens[1],
+          busStopId,
           new Date(),
         ]);
       } else {
         userRow.setValues([
-          [chatId, message.from?.first_name ?? '', tokens[1], new Date()],
+          [chatId, message.from?.first_name ?? '', busStopId, new Date()],
         ]);
       }
     }
   }
 
-  getBusStopId(
-    tokens: string[],
+  getSavedBusStopId(
     userRow: GoogleAppsScript.Spreadsheet.Range | null,
-  ): string {
-    this.loggerService.info(
-      `Retrieving requested bus stop id ${JSON.stringify(
-        tokens,
-      )} ${JSON.stringify(userRow?.getValues() ?? {})}`,
-    );
-    if (tokens.length === 1) {
-      if (userRow !== null) {
-        return userRow.getCell(1, 3).getValue().toString().split(' ');
-      }
-    } else if (tokens.length === 2) {
-      return tokens[1];
+  ): string | null {
+    if (userRow !== null) {
+      return userRow.getCell(1, 3).getValue().toString().split(' ');
     }
-    return '04167';
+    return null;
   }
 
   getBusArrivals(busStopNo: string): ResponseBody<BusArrivalResponse> {
@@ -113,9 +129,7 @@ export class BusService {
     return { 'odata.metadata': '', BusStopCode: busStopNo };
   }
 
-  formatBusArrivals(
-    busArrivalResponse: ResponseBody<BusArrivalResponse>,
-  ): string {
+  formatBusArrivalHeader(busArrivalResponse: ResponseBody<BusArrivalResponse>) {
     const results: string[] = [];
 
     if (busArrivalResponse.Services === undefined) {
@@ -123,7 +137,7 @@ export class BusService {
       return results.join('\n');
     }
 
-    results.push(`*🚍 BUS STOP ${busArrivalResponse.BusStopCode}*`);
+    results.push(`🚍 BUS STOP ${busArrivalResponse.BusStopCode}`);
 
     this.loggerService.debug(`services: ${busArrivalResponse.Services}`);
     if (busArrivalResponse.Services.length === 0) {
@@ -131,22 +145,38 @@ export class BusService {
         `${constants.MSG_NO_BUSES} ${busArrivalResponse.BusStopCode}\\! :\\(`,
       );
     } else {
-      results.push(`*${this.TABLE_HEADERS.join(' \\| ')}*`);
-      for (const service of busArrivalResponse.Services) {
-        const serviceNo = service.ServiceNo;
-        const nextBusDuration = this.getWaitingTime(
-          service.NextBus.EstimatedArrival,
-        );
-        const nextBusDuration2 = this.getWaitingTime(
-          service.NextBus2.EstimatedArrival,
-        );
-        const nextBusDuration3 = this.getWaitingTime(
-          service.NextBus3.EstimatedArrival,
-        );
+      for (const row of this.TABLE_HEADERS) {
         results.push(
-          `*${serviceNo}*   \\|   ${nextBusDuration}   \\|   ${nextBusDuration2}   \\|   ${nextBusDuration3}`,
+          '\\|' +
+            row
+              .map((cell) =>
+                cell.padStart(
+                  this.TABLE_COLUMN_WIDTH + (cell.match(/\\/g) || []).length,
+                ),
+              )
+              .join(' \\|'),
         );
       }
+    }
+    return results.join('\n');
+  }
+
+  formatBusArrivalTimings(BusServiceDetails: BusServiceDetails[]): string {
+    const results: string[] = [];
+    for (const service of BusServiceDetails) {
+      const serviceNo = service.ServiceNo.padStart(this.TABLE_COLUMN_WIDTH);
+      const nextBusDuration = this.getWaitingTime(
+        service.NextBus.EstimatedArrival,
+      ).padStart(this.TABLE_COLUMN_WIDTH);
+      const nextBusDuration2 = this.getWaitingTime(
+        service.NextBus2.EstimatedArrival,
+      ).padStart(this.TABLE_COLUMN_WIDTH);
+      const nextBusDuration3 = this.getWaitingTime(
+        service.NextBus3.EstimatedArrival,
+      ).padStart(this.TABLE_COLUMN_WIDTH);
+      results.push(
+        `\\|${serviceNo} \\|${nextBusDuration} \\|${nextBusDuration2} \\|${nextBusDuration3}`,
+      );
     }
     return results.join('\n');
   }

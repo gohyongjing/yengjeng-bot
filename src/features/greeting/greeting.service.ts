@@ -1,20 +1,32 @@
-import { EnvironmentService } from '@core/environment';
-import { ByeService } from '../bye';
+import { AppService } from '@core/appService';
+import { Message, TelegramService, Update } from '@core/telegram';
+import { hasKey } from '@core/util/predicates';
 
-/**
- * Dependency Injection (ish) approach
- */
-export class GreetingService {
-  constructor(
-    private readonly byeService: ByeService,
-    private readonly environmentService: EnvironmentService,
-  ) {}
+export class GreetingService extends AppService {
+  override APP_SERVICE_COMMAND_WORD = 'start';
+  private readonly telegramService: TelegramService;
 
-  greet(name: string): string {
-    return this.byeService.sayBye(name);
+  constructor() {
+    super();
+    this.telegramService = new TelegramService();
   }
 
-  useSecretValue(): string {
-    return this.environmentService.get('MY_SECRET_VALUE') ?? '';
+  override async processUpdate(update: Update) {
+    if (hasKey(update, 'message')) {
+      this.handleMessageUpdate(update.message);
+    }
+  }
+
+  override help(): string {
+    return '*GREETING*\n' + 'START: Start using Yeng Jeng bot :\\)';
+  }
+
+  private handleMessageUpdate(message: Message) {
+    const chat = message.chat;
+
+    const responseText = `Hello ${
+      chat.first_name ?? ''
+    }\\! This is Yeng Jeng Bot\\!`;
+    this.telegramService.sendMessage({ chatId: chat.id, text: responseText });
   }
 }
