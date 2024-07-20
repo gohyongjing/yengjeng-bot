@@ -13,15 +13,16 @@ import { Options, UrlFetchService } from '@core/urlFetch';
 import { hasKey } from '@core/util/predicates';
 import { AppService } from '@core/appService';
 import { Command } from '@core/util/command';
+import { MarkdownBuilder } from '@core/util/markdownBuilder';
 
 export class BusService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'bus';
 
   TABLE_HEADERS = [
     ['Bus No', 'Next Bus', '2nd Bus', '3rd Bus'],
-    ['', '\\(mins\\)', '\\(mins\\)', '\\(mins\\)'],
+    ['', '(mins)', '(mins)', '(mins)'],
   ];
-  TABLE_COLUMN_WIDTH = 9;
+  TABLE_COLUMN_WIDTH = 8;
 
   configService: ConfigService<BusConfig>;
   loggerService: LoggerService;
@@ -46,8 +47,8 @@ export class BusService extends AppService {
   override help(): string {
     return (
       '*BUS*\n' +
-      'BUS [BUS NUMBER]: Gets the bus stop timings for the bus stop with bus stop number\\. For example, type BUS 12345\n' +
-      'BUS : Type BUS without a bus stop number to get the timings for the previously requested bus stop\\.'
+      'BUS [BUS NUMBER]: Gets the bus stop timings for the bus stop with bus stop number. For example, type BUS 12345\n' +
+      'BUS : Type BUS without a bus stop number to get the timings for the previously requested bus stop.'
     );
   }
 
@@ -55,7 +56,7 @@ export class BusService extends AppService {
     const chatId = message.chat.id;
     this.telegramService.sendMessage({
       chatId,
-      text: 'Gimme a sec, getting the bus timings',
+      markdown: new MarkdownBuilder('Gimme a sec, getting the bus timings'),
     });
 
     const text = message.text ?? '';
@@ -73,18 +74,19 @@ export class BusService extends AppService {
 
     const busStopId =
       command.positionalArgs[0] ?? this.getSavedBusStopId(userRow) ?? '04167';
-    let response = [constants.MSG_INVALID_BUS_CODE];
+    let response = new MarkdownBuilder(constants.MSG_INVALID_BUS_CODE);
 
     const isValidBusStopId = /^\d+$/.test(busStopId);
     if (isValidBusStopId) {
       const busArrivals = this.getBusArrivals(busStopId);
-      response = ['```'];
-      response.push(this.formatBusArrivalHeader(busArrivals));
-      response.push(this.formatBusArrivalTimings(busArrivals.Services ?? []));
-      response.push('```');
+      response = new MarkdownBuilder().code(
+        `${this.formatBusArrivalHeader(
+          busArrivals,
+        )}\n${this.formatBusArrivalTimings(busArrivals.Services ?? [])}`,
+      );
     }
 
-    this.telegramService.sendMessage({ chatId, text: response.join('\n') });
+    this.telegramService.sendMessage({ chatId, markdown: response });
 
     if (command.positionalArgs[0] !== undefined && isValidBusStopId) {
       if (userRow === null) {
@@ -133,7 +135,7 @@ export class BusService extends AppService {
     const results: string[] = [];
 
     if (busArrivalResponse.Services === undefined) {
-      results.push(`${constants.MSG_INVALID_BUS_CODE}\\!`);
+      results.push(`${constants.MSG_INVALID_BUS_CODE}!`);
       return results.join('\n');
     }
 
@@ -142,28 +144,30 @@ export class BusService extends AppService {
     this.loggerService.debug(`services: ${busArrivalResponse.Services}`);
     if (busArrivalResponse.Services.length === 0) {
       results.push(
-        `${constants.MSG_NO_BUSES} ${busArrivalResponse.BusStopCode}\\! :\\(`,
+        `${constants.MSG_NO_BUSES} ${busArrivalResponse.BusStopCode}! :(`,
       );
     } else {
       for (const row of this.TABLE_HEADERS) {
         results.push(
-          '\\|' +
-            row
-              .map((cell) =>
-                cell.padStart(
-                  this.TABLE_COLUMN_WIDTH + (cell.match(/\\/g) || []).length,
-                ),
-              )
-              .join(' \\|'),
+          '|' +
+            row.map((cell) => cell.padStart(this.TABLE_COLUMN_WIDTH)).join('|'),
         );
       }
     }
     return results.join('\n');
   }
 
-  formatBusArrivalTimings(BusServiceDetails: BusServiceDetails[]): string {
+  formatBusArrivalTimings(busServiceDetails: BusServiceDetails[]): string {
+    busServiceDetails.sort((serviceA, serviceB) => {
+      const serviceADigits = serviceA.ServiceNo.replace(/\D/g, '');
+      const serviceBDigits = serviceB.ServiceNo.replace(/\D/g, '');
+      const result = parseInt(serviceADigits) - parseInt(serviceBDigits);
+      return result !== 0
+        ? result
+        : serviceA.ServiceNo.localeCompare(serviceB.ServiceNo);
+    });
     const results: string[] = [];
-    for (const service of BusServiceDetails) {
+    for (const service of busServiceDetails) {
       const serviceNo = service.ServiceNo.padStart(this.TABLE_COLUMN_WIDTH);
       const nextBusDuration = this.getWaitingTime(
         service.NextBus.EstimatedArrival,
@@ -175,7 +179,7 @@ export class BusService extends AppService {
         service.NextBus3.EstimatedArrival,
       ).padStart(this.TABLE_COLUMN_WIDTH);
       results.push(
-        `\\|${serviceNo} \\|${nextBusDuration} \\|${nextBusDuration2} \\|${nextBusDuration3}`,
+        `|${serviceNo}|${nextBusDuration}|${nextBusDuration2}|${nextBusDuration3}`,
       );
     }
     return results.join('\n');

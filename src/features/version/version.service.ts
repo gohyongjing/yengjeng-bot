@@ -1,6 +1,7 @@
 import { AppService } from '@core/appService';
 import { LoggerService } from '@core/logger';
 import { Message, TelegramService, Update } from '@core/telegram';
+import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { hasKey } from '@core/util/predicates';
 
 export class VersionService extends AppService {
@@ -34,19 +35,20 @@ export class VersionService extends AppService {
     }
   }
   override help(): string {
-    return (
-      '*VERSION*\n' + 'VERSION: Retrieves the version number of Yeng Jeng bot'
-    );
+    return '*VERSION*\nVERSION: Retrieves the version number of Yeng Jeng bot';
   }
 
   processMessage(message: Message) {
     const chatId = message.chat.id;
     const responseText = `Yeng Jeng Bot\n${this.getVersion()}`;
-    this.telegramService.sendMessage({ chatId, text: responseText });
+    this.telegramService.sendMessage({
+      chatId,
+      markdown: new MarkdownBuilder(responseText),
+    });
   }
 
   getVersion(): string {
-    return `v${this.major}\\.${this.minor}\\.${this.patch}`;
+    return `v${this.major}.${this.minor}.${this.patch}`;
   }
 
   getChangeLog(): string[] {

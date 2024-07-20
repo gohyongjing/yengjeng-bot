@@ -2,6 +2,7 @@ import { AppService } from '@core/appService';
 import { LoggerService } from '@core/logger';
 import { Message, TelegramService, Update } from '@core/telegram';
 import { Command } from '@core/util/command';
+import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { hasKey } from '@core/util/predicates';
 
 export class HelpService extends AppService {
@@ -29,13 +30,15 @@ export class HelpService extends AppService {
 
       this.telegramService.sendMessage({
         chatId: update.message.chat.id,
-        text: "Sorry\\.\\.\\. I don\\'t understand what you just said \\:\\(\nPlease type HELP for more information",
+        markdown: new MarkdownBuilder(
+          "Sorry... I don't understand what you just said :(\nPlease type HELP for more information",
+        ),
       });
     }
   }
 
   override help(): string {
-    return '*HELP*\n' + 'HELP: Provides instructions to use features provided';
+    return '*HELP*\nHELP: Provides instructions to use features provided';
   }
 
   processMessage(message: Message) {
@@ -45,7 +48,7 @@ export class HelpService extends AppService {
     const chatId = message.chat.id;
     this.telegramService.sendMessage({
       chatId,
-      text: helpMessages.join('\n'),
+      markdown: new MarkdownBuilder(helpMessages.join('\n')),
     });
   }
 }

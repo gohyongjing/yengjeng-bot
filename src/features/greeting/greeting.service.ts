@@ -1,5 +1,6 @@
 import { AppService } from '@core/appService';
 import { Message, TelegramService, Update } from '@core/telegram';
+import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { hasKey } from '@core/util/predicates';
 
 export class GreetingService extends AppService {
@@ -18,7 +19,7 @@ export class GreetingService extends AppService {
   }
 
   override help(): string {
-    return '*GREETING*\n' + 'START: Start using Yeng Jeng bot :\\)';
+    return '*GREETING*\nSTART: Start using Yeng Jeng bot :)';
   }
 
   private handleMessageUpdate(message: Message) {
@@ -26,7 +27,10 @@ export class GreetingService extends AppService {
 
     const responseText = `Hello ${
       chat.first_name ?? ''
-    }\\! This is Yeng Jeng Bot\\!`;
-    this.telegramService.sendMessage({ chatId: chat.id, text: responseText });
+    }! This is Yeng Jeng Bot!`;
+    this.telegramService.sendMessage({
+      chatId: chat.id,
+      markdown: new MarkdownBuilder(responseText),
+    });
   }
 }

@@ -21,7 +21,7 @@ describe('VersionService', () => {
 
     it('should return version number with 3 dot separated integers', () => {
       const actual = underTest.getVersion();
-      const numbers = actual.slice(1).split('\\.');
+      const numbers = actual.slice(1).split('.');
       expect(numbers).toHaveLength(3);
       expect(Number.isInteger(Number(numbers[0]))).toBeTruthy();
       expect(Number.isInteger(Number(numbers[1]))).toBeTruthy();

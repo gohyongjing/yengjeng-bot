@@ -15,6 +15,7 @@ import {
   MockTelegramUrlFetchApp,
   sendMessage,
 } from '@core/telegram/telegram.mock';
+import { BusServiceDetails } from './bus.type';
 
 describe('BusService', () => {
   let underTest: BusService;
@@ -145,6 +146,22 @@ describe('BusService', () => {
         );
         expect(parseInt(arrivalTime, 10)).toBeGreaterThanOrEqual(0);
       }
+    });
+
+    it('should return details sorted by service number', () => {
+      const services: BusServiceDetails[] = [
+        new Builder(MockBusServiceDetails).with({ ServiceNo: '2A' }).build(),
+        new Builder(MockBusServiceDetails).with({ ServiceNo: '10' }).build(),
+        new Builder(MockBusServiceDetails).with({ ServiceNo: '2' }).build(),
+        new Builder(MockBusServiceDetails).with({ ServiceNo: '1' }).build(),
+      ];
+      const expected = ['1', '2', '2A', '10'];
+
+      const actual = underTest
+        .formatBusArrivalTimings(services)
+        .split('\n')
+        .map((row) => row.split('|')[1].trim());
+      expect(actual).toEqual(expected);
     });
   });
 

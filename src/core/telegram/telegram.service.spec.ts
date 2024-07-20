@@ -1,6 +1,7 @@
 import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { TelegramService } from './telegram.service';
 import { MockTelegramUrlFetchApp } from './telegram.mock';
+import { MarkdownBuilder } from '@core/util/markdownBuilder';
 
 describe('TelegramService', () => {
   let underTest: TelegramService;
@@ -43,7 +44,7 @@ describe('TelegramService', () => {
       const expectedMessage = 'Hello';
       const actual = underTest.sendMessage({
         chatId: 123,
-        text: expectedMessage,
+        markdown: new MarkdownBuilder(expectedMessage),
       });
       if (!actual.ok) {
         throw "Response body contains '{ok: false}'";

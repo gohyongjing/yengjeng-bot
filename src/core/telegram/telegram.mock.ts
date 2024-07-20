@@ -42,25 +42,31 @@ function setWebhook(): string {
 export const canParseMarkdownV2 = jest.fn((encodedText: string) => {
   const text = decodeURIComponent(encodedText);
   let parenthesisCount = 0;
+  let isEscaped = false;
+
   for (let i = 0; i < text.length; i++) {
     const ch = text.charAt(i);
     const prevCh = i - 1 !== -1 ? text.charAt(i - 1) : null;
     const nextCh = i + 1 !== text.length ? text.charAt(i + 1) : null;
 
-    const isEscaped = prevCh === '\\';
-    if (isEscaped) {
+    if (ch === '\\') {
+      i += 1;
+      continue;
+    } else if (text.slice(i, i + 3) === '```') {
+      isEscaped = !isEscaped;
+    } else if (isEscaped) {
       continue;
     } else if (ch === '-' || ch === '.') {
-      console.log(`markdown contains Unescaped ${ch}`);
+      console.log(`markdown '${text}' contains Unescaped ${ch} at index ${i}`);
       return false;
     } else if (ch === '!') {
       if (nextCh !== '[') {
-        console.log("markdown contains Unescaped '!'");
+        console.log(`markdown '${text}' contains Unescaped '!' at index ${i}`);
         return false;
       }
     } else if (ch === '|') {
       if (prevCh !== '|' && nextCh !== '|') {
-        console.log("markdown contains Unescaped '|'");
+        console.log(`markdown '${text}' contains Unescaped '|' at index ${i}`);
         return false;
       }
     } else if (ch === '(') {
@@ -70,7 +76,7 @@ export const canParseMarkdownV2 = jest.fn((encodedText: string) => {
     }
   }
   if (parenthesisCount !== 0) {
-    console.log("markdown contains Unescaped '(' or ')'");
+    console.log(`markdown '${text}' contains Unescaped '(' or ')'`);
   }
   return parenthesisCount === 0;
 });
