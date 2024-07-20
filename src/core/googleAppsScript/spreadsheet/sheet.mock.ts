@@ -5,6 +5,10 @@ import { MockSelection } from './selection.mock';
 import { MockSpreadsheet } from './spreadsheet.mock';
 import { MockTextFinder } from './textFinder.mock';
 
+export const appendRow = jest.fn((_rowContents: any[]) => {
+  return MockSheet;
+});
+
 export const MockSheet: GoogleAppsScript.Spreadsheet.Sheet = {
   activate: () => MockSheet,
   addDeveloperMetadata: (
@@ -14,7 +18,7 @@ export const MockSheet: GoogleAppsScript.Spreadsheet.Sheet = {
       | string,
     _visibility?: GoogleAppsScript.Spreadsheet.DeveloperMetadataVisibility,
   ) => MockSheet,
-  appendRow: (_rowContents: any[]) => MockSheet,
+  appendRow,
   asDataSourceSheet: () => {
     return null;
   },

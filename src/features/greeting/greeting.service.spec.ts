@@ -1,4 +1,4 @@
-import { MockSpreadsheetApp } from '@core/googleAppsScript';
+import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { Builder } from '@core/util/builder';
 import {
   canParseMarkdownV2,
@@ -13,6 +13,7 @@ describe('GreetingService', () => {
   let underTest: GreetingService;
 
   beforeAll(() => {
+    global.Logger = MockLogger;
     global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });

@@ -6,13 +6,14 @@ import {
 } from '@core/telegram/telegram.mock';
 import { HelpService } from './help.service';
 import { Builder } from '@core/util/builder';
-import { MockSpreadsheetApp } from '@core/googleAppsScript';
+import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 
 describe('HelpService', () => {
   describe('processUpdate', () => {
     let underTest: HelpService;
 
     beforeAll(() => {
+      global.Logger = MockLogger;
       global.SpreadsheetApp = MockSpreadsheetApp;
       global.UrlFetchApp = MockTelegramUrlFetchApp;
     });

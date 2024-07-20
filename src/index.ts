@@ -7,9 +7,9 @@ import { VersionService } from '@features/version';
 // @ts-ignore
 function main(): void {
   new TelegramService().setWebhook();
-
-  Logger.log({ doGet, doPost });
-  Logger.log('Yeng Jeng Bot ready!');
+  const loggerService = new LoggerService();
+  loggerService.info({ doGet, doPost });
+  loggerService.info('Yeng Jeng Bot ready!');
 }
 
 /**

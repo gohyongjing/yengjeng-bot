@@ -6,7 +6,11 @@ import {
   MockLTAUrlFetchApp,
 } from './bus.mock';
 import { BusService } from './bus.service';
-import { MockSpreadsheetApp, MockUrlFetchApp } from '@core/googleAppsScript';
+import {
+  MockLogger,
+  MockSpreadsheetApp,
+  MockUrlFetchApp,
+} from '@core/googleAppsScript';
 import { constants } from './bus.constants';
 import { Builder } from '@core/util/builder';
 import {
@@ -21,6 +25,7 @@ describe('BusService', () => {
   let underTest: BusService;
 
   beforeAll(() => {
+    global.Logger = MockLogger;
     global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = new Builder(MockUrlFetchApp)
       .with({

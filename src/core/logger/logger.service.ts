@@ -9,11 +9,13 @@ export class LoggerService {
     this.spreadsheetService = new SpreadsheetService();
   }
 
-  private log(details: unknown, logLevel: LOG_LEVEL = 'INFO') {
+  private log(details: unknown, logLevel: LOG_LEVEL) {
+    const entry = [new Date(), logLevel, details];
+    Logger.log(entry);
     this.spreadsheetService
       .open()
       .getSheets()
-      [this.SHEET_INDEX].appendRow([new Date(), logLevel, details]);
+      [this.SHEET_INDEX].appendRow(entry);
   }
 
   debug(details: unknown) {

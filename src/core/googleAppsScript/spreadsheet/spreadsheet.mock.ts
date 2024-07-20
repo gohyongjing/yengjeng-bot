@@ -13,34 +13,20 @@ export const MockSpreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet = {
       | GoogleAppsScript.Spreadsheet.DeveloperMetadataVisibility
       | string,
     _visibility?: GoogleAppsScript.Spreadsheet.DeveloperMetadataVisibility,
-  ) => {
-    return MockSpreadsheet;
-  },
-  addEditor: (_emailAddressOrUser: string | GoogleAppsScript.Base.User) => {
-    return MockSpreadsheet;
-  },
-  addEditors: (_emailAddresses: string[]) => {
-    return MockSpreadsheet;
-  },
+  ) => MockSpreadsheet,
+  addEditor: (_emailAddressOrUser: string | GoogleAppsScript.Base.User) =>
+    MockSpreadsheet,
+  addEditors: (_emailAddresses: string[]) => MockSpreadsheet,
   addMenu: (
     _name: string,
     _subMenus: ({ name: string; functionName: string } | null)[],
   ) => {},
-  addViewer: (_emailAddressOrUser: string | GoogleAppsScript.Base.User) => {
-    return MockSpreadsheet;
-  },
-  addViewers: (_emailAddresses: string[]) => {
-    return MockSpreadsheet;
-  },
-  appendRow: (_rowContents: any[]) => {
-    return MockSheet;
-  },
-  autoResizeColumn: (_columnPosition: GoogleAppsScript.Integer) => {
-    return MockSheet;
-  },
-  copy: (_name: string) => {
-    return MockSpreadsheet;
-  },
+  addViewer: (_emailAddressOrUser: string | GoogleAppsScript.Base.User) =>
+    MockSpreadsheet,
+  addViewers: (_emailAddresses: string[]) => MockSpreadsheet,
+  appendRow: (_rowContents: any[]) => MockSheet,
+  autoResizeColumn: (_columnPosition: GoogleAppsScript.Integer) => MockSheet,
+  copy: (_name: string) => MockSpreadsheet,
   createDeveloperMetadataFinder: () => MockDeveloperMetadataFinder,
   createTextFinder: (_findText: string) => MockTextFinder,
   deleteActiveSheet: () => MockSheet,
