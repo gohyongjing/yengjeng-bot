@@ -4,7 +4,7 @@ import { LoggerService } from '@core/logger';
 import { TelegramService, isUpdate } from '@core/telegram';
 import { VersionService } from '@features/version';
 
-// @ts-ignore
+// @ts-ignore Main method is unused as it is the entry point
 function main(): void {
   new TelegramService().setWebhook();
   const loggerService = new LoggerService();

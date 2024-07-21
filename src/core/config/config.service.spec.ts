@@ -1,7 +1,30 @@
 import { MockPropertiesService } from '@core/googleAppsScript';
 import { ConfigService } from './config.service';
+import process from 'process';
 
 describe('PropertyService', () => {
+  describe('constructor', () => {
+    describe('No environment', () => {
+      let process: NodeJS.Process;
+
+      beforeEach(() => {
+        process = global.process;
+        //@ts-ignore Allow deleting non-optional global variable for testing purposes
+        delete global.process;
+      });
+
+      afterEach(() => {
+        global.process = process;
+      });
+
+      it('should fail fast and throw exception', () => {
+        expect(() => {
+          new ConfigService();
+        }).toThrow();
+      });
+    });
+  });
+
   describe('get', () => {
     type Properties = {
       keyA: string;
