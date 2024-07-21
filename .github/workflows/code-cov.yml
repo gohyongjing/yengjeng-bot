@@ -13,8 +13,9 @@ jobs:
         run: npm install
       - name: Run tests with coverage
         run: npm run test:cov
-        env: ${{ secrets.WEB_APP_URL }}
-        env: ${{ secrets.SPREADSHEET_ID }}
-        env: ${{ secrets.TELEGRAM_TOKEN }}
-        env: ${{ secrets.TELEGRAM_OWNER_ID }}
-        env: ${{ secrets.LTA_ACCOUNT_KEY }}
+        env:
+          WEB_APP_URL: ${{ secrets.WEB_APP_URL }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_OWNER_ID: ${{ secrets.TELEGRAM_OWNER_ID }}
+          LTA_ACCOUNT_KEY: ${{ secrets.LTA_ACCOUNT_KEY }}
