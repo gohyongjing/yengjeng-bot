@@ -1,5 +1,5 @@
 # 🤖 Yeng Jeng Bot
-
+[![Build Status](https://app.travis-ci.com/gohyongjing/yengjeng-bot.svg?token=an5nSQAaSPsPVFnHBkha&branch=main)](https://app.travis-ci.com/gohyongjing/yengjeng-bot)
 [![codecov](https://codecov.io/github/gohyongjing/yengjeng-bot/graph/badge.svg?token=WXAVCO164F)](https://codecov.io/github/gohyongjing/yengjeng-bot)
 
 Yeng Jeng Bot helps you retrieve bus arrival timings at a bus stop
