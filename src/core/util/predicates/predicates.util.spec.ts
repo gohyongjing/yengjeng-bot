@@ -1,4 +1,4 @@
-import { hasKey, isObject } from './predicates';
+import { hasKey, isObject } from './predicates.util';
 
 describe('predicates', () => {
   describe('isObject', () => {

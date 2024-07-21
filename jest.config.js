@@ -8,7 +8,14 @@ module.exports = {
   rootDir: '.',
   moduleFileExtensions: ['js', 'json', 'ts'],
   testRegex: '.*\\.spec\\.ts$',
-  transform: { '^.+\\.ts$': 'ts-jest' },
+  transform: {
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        diagnostics: false,
+      },
+    ],
+  },
   collectCoverageFrom: [`**/*.(${COVERAGE_FILE_SUFFIX.join('|')}).ts`],
   setupFilesAfterEnv: ['./test/env.setup.js'],
   coverageDirectory: './coverage',
@@ -17,4 +24,9 @@ module.exports = {
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
     prefix: '<rootDir>',
   }),
+  // globals: {
+  //   'ts-jest': {
+  //     diagnostics: false
+  //   }
+  // }
 };

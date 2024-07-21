@@ -1,4 +1,4 @@
-import { MarkdownBuilder } from './markdownBuilder';
+import { MarkdownBuilder } from './markdownBuilder.util';
 
 describe('MarkdownBuilder', () => {
   let underTest: MarkdownBuilder;
