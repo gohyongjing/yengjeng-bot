@@ -14,6 +14,13 @@ export class Builder<T> {
     return this;
   }
 
+  without<Key extends keyof T>(keys: Key[]) {
+    for (const key of keys) {
+      delete this.instance[key];
+    }
+    return this;
+  }
+
   build() {
     return this.instance;
   }

@@ -1,8 +1,4 @@
-import {
-  MockLogger,
-  MockSpreadsheetApp,
-  MockUrlFetchApp,
-} from '@core/googleAppsScript';
+import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { VersionService } from './version.service';
 import {
   MockMessage,
