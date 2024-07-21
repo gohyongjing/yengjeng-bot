@@ -2,7 +2,7 @@ name: code-cov-workflow
 run-name: ${{ github.actor }} is generating code-cov reports
 on: [push]
 jobs:
-  check-bats-version:
+  generate-code-cov-reports:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,3 +13,8 @@ jobs:
         run: npm install
       - name: Run tests with coverage
         run: npm run test:cov
+        env: ${{ secrets.WEB_APP_URL }}
+        env: ${{ secrets.SPREADSHEET_ID }}
+        env: ${{ secrets.TELEGRAM_TOKEN }}
+        env: ${{ secrets.TELEGRAM_OWNER_ID }}
+        env: ${{ secrets.LTA_ACCOUNT_KEY }}
