@@ -121,7 +121,7 @@ export class BusService extends AppService {
       },
     };
     const result = UrlFetchService.fetch(
-      `http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2?BusStopCode=${busStopNo}`,
+      `https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival?BusStopCode=${busStopNo}`,
       options,
     );
     if (hasKey(result, 'Ok')) {

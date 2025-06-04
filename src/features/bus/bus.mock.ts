@@ -41,7 +41,7 @@ export const MockBusServiceDetails: BusServiceDetails = {
 
 export const MockBusArrivalResponseBody: ResponseBody<BusArrivalResponse> = {
   'odata.metadata':
-    'http://datamall2.mytransport.sg/ltaodataservice/$metadata#BusArrivalv2/@Element',
+    'https://datamall2.mytransport.sg/ltaodataservice/$metadata#BusArrivalv2/@Element',
   BusStopCode: '12345',
   Services: [MockBusServiceDetails],
 };
