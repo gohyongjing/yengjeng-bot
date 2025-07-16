@@ -21,6 +21,14 @@ const eslintConfig = {
       },
       rules: {
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            argsIgnorePattern: '^_',
+            varsIgnorePattern: '^_',
+            caughtErrorsIgnorePattern: '^_',
+          },
+        ],
       },
       overrides: [
         {

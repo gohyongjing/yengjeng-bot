@@ -1,1 +1,1 @@
-export * from './appService.type';
+export { AppService } from './appService.type';

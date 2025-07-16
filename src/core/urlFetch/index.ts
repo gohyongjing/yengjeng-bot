@@ -1,2 +1,2 @@
-export * from './urlFetch.service';
-export * from './urlFetch.type';
+export { UrlFetchService } from './urlFetch.service';
+export type { Options, Response } from './urlFetch.type';

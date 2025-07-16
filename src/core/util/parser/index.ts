@@ -1,1 +1,1 @@
-export * from './parser.util';
+export { Parser } from './parser.util';

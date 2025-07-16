@@ -1,1 +1,1 @@
-export * from './PropertiesService.mock';
+export { MockPropertiesService } from './PropertiesService.mock';

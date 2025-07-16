@@ -1,1 +1,1 @@
-export * from './spreadsheet.service';
+export { SpreadsheetService } from './spreadsheet.service';

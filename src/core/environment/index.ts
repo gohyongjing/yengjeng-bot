@@ -1,1 +1,1 @@
-export * from './environment.service';
+export { EnvironmentService } from './environment.service';

@@ -1,1 +1,1 @@
-export * from './markdownBuilder.util';
+export { MarkdownBuilder } from './markdownBuilder.util';
