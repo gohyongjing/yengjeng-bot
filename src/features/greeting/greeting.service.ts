@@ -5,11 +5,9 @@ import { hasKey } from '@core/util/predicates';
 
 export class GreetingService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'start';
-  private readonly telegramService: TelegramService;
 
   constructor() {
     super();
-    this.telegramService = new TelegramService();
   }
 
   override async processUpdate(update: Update) {
@@ -28,7 +26,7 @@ export class GreetingService extends AppService {
     const responseText = `Hello ${
       chat.first_name ?? ''
     }! This is Yeng Jeng Bot!`;
-    this.telegramService.sendMessage({
+    TelegramService.sendMessage({
       chatId: chat.id,
       markdown: new MarkdownBuilder(responseText),
     });

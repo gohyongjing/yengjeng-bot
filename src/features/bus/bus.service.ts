@@ -27,7 +27,6 @@ export class BusService extends AppService {
   configService: ConfigService<BusConfig>;
   loggerService: LoggerService;
   spreadsheetService: SpreadsheetService;
-  telegramService: TelegramService;
   SHEET_INDEX = 1;
 
   constructor() {
@@ -35,7 +34,6 @@ export class BusService extends AppService {
     this.configService = new ConfigService();
     this.loggerService = new LoggerService();
     this.spreadsheetService = new SpreadsheetService();
-    this.telegramService = new TelegramService();
   }
 
   async processUpdate(update: Update) {
@@ -54,7 +52,7 @@ export class BusService extends AppService {
 
   processMessage(message: Message) {
     const chatId = message.chat.id;
-    this.telegramService.sendMessage({
+    TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder('Gimme a sec, getting the bus timings'),
     });
@@ -63,14 +61,21 @@ export class BusService extends AppService {
     const command = new Command(text);
 
     const userSpreadsheet = this.spreadsheetService.open();
-    const userSheet = userSpreadsheet.getSheets()[this.SHEET_INDEX];
-    const userCell = userSheet
-      .getRange('A:A')
-      .createTextFinder(chatId.toString())
-      .findNext();
-    const userRow = userCell
-      ? userSheet.getRange(`A${userCell.getRow()}:D${userCell.getRow()}`)
-      : null;
+    const userSheet = SpreadsheetService.getSheetByIndex(
+      userSpreadsheet,
+      this.SHEET_INDEX,
+    );
+
+    if (!userSheet) {
+      this.loggerService.error('User sheet not found');
+      return;
+    }
+
+    const userRow = SpreadsheetService.findRowByLookupValue(
+      userSheet,
+      1,
+      chatId.toString(),
+    );
 
     const busStopId =
       command.positionalArgs[0] ?? this.getSavedBusStopId(userRow) ?? '04167';
@@ -86,21 +91,22 @@ export class BusService extends AppService {
       );
     }
 
-    this.telegramService.sendMessage({ chatId, markdown: response });
+    TelegramService.sendMessage({ chatId, markdown: response });
 
     if (command.positionalArgs[0] !== undefined && isValidBusStopId) {
-      if (userRow === null) {
-        userSheet.appendRow([
-          chatId,
-          message.from?.first_name ?? '',
-          busStopId,
-          new Date(),
-        ]);
-      } else {
-        userRow.setValues([
-          [chatId, message.from?.first_name ?? '', busStopId, new Date()],
-        ]);
-      }
+      const userData = [
+        chatId,
+        message.from?.first_name ?? '',
+        busStopId,
+        new Date(),
+      ];
+
+      SpreadsheetService.createOrUpdateRow(
+        userSheet,
+        1,
+        chatId.toString(),
+        userData,
+      );
     }
   }
 
@@ -108,7 +114,8 @@ export class BusService extends AppService {
     userRow: GoogleAppsScript.Spreadsheet.Range | null,
   ): string | null {
     if (userRow !== null) {
-      return userRow.getCell(1, 3).getValue().toString().split(' ');
+      const busStopId = SpreadsheetService.getCellValue(userRow, 3);
+      return busStopId;
     }
     return null;
   }

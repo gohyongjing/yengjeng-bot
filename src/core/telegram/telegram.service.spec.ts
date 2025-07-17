@@ -4,21 +4,15 @@ import { MockTelegramUrlFetchApp } from './telegram.mock';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 
 describe('TelegramService', () => {
-  let underTest: TelegramService;
-
   beforeAll(() => {
     global.Logger = MockLogger;
     global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 
-  beforeEach(() => {
-    underTest = new TelegramService();
-  });
-
   describe('getMe', () => {
     it('should return the user object', () => {
-      const actual = underTest.getMe();
+      const actual = TelegramService.getMe();
       if (!actual.ok) {
         throw "Response body contains '{ok: false}'";
       }
@@ -31,7 +25,7 @@ describe('TelegramService', () => {
 
   describe('setWebhook', () => {
     it('should return true', () => {
-      const actual = underTest.setWebhook();
+      const actual = TelegramService.setWebhook();
       if (!actual.ok) {
         throw "Response body contains '{ok: false}'";
       }
@@ -42,7 +36,7 @@ describe('TelegramService', () => {
   describe('sendMessage', () => {
     it('should return sent message', () => {
       const expectedMessage = 'Hello';
-      const actual = underTest.sendMessage({
+      const actual = TelegramService.sendMessage({
         chatId: 123,
         markdown: new MarkdownBuilder(expectedMessage),
       });

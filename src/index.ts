@@ -6,7 +6,7 @@ import { VersionService } from '@features/version';
 
 // @ts-ignore Main method is unused as it is the entry point
 function main(): void {
-  new TelegramService().setWebhook();
+  TelegramService.setWebhook();
   const loggerService = new LoggerService();
   loggerService.info({ doGet, doPost });
   loggerService.info('Yeng Jeng Bot ready!');

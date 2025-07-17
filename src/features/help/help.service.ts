@@ -9,13 +9,11 @@ export class HelpService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'help';
 
   loggerService: LoggerService;
-  telegramService: TelegramService;
   services: AppService[];
 
   constructor(services: AppService[]) {
     super();
     this.loggerService = new LoggerService();
-    this.telegramService = new TelegramService();
     this.services = services;
   }
 
@@ -28,7 +26,7 @@ export class HelpService extends AppService {
         return;
       }
 
-      this.telegramService.sendMessage({
+      TelegramService.sendMessage({
         chatId: update.message.chat.id,
         markdown: new MarkdownBuilder(
           "Sorry... I don't understand what you just said :(\nPlease type HELP for more information",
@@ -46,7 +44,7 @@ export class HelpService extends AppService {
       this.services.map((service) => service.help()),
     );
     const chatId = message.chat.id;
-    this.telegramService.sendMessage({
+    TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder(helpMessages.join('\n')),
     });

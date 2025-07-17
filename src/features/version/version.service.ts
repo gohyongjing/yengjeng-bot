@@ -22,12 +22,10 @@ export class VersionService extends AppService {
   };
 
   loggerService: LoggerService;
-  telegramService: TelegramService;
 
   constructor() {
     super();
     this.loggerService = new LoggerService();
-    this.telegramService = new TelegramService();
   }
 
   override async processUpdate(update: Update): Promise<void> {
@@ -42,7 +40,7 @@ export class VersionService extends AppService {
   processMessage(message: Message) {
     const chatId = message.chat.id;
     const responseText = `Yeng Jeng Bot\n${this.getVersion()}`;
-    this.telegramService.sendMessage({
+    TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder(responseText),
     });

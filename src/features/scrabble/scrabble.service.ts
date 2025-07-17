@@ -9,12 +9,10 @@ export class ScrabbleService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'scrabble';
 
   loggerService: LoggerService;
-  telegramService: TelegramService;
 
   constructor() {
     super();
     this.loggerService = new LoggerService();
-    this.telegramService = new TelegramService();
   }
 
   async processUpdate(update: Update) {
@@ -39,7 +37,7 @@ export class ScrabbleService extends AppService {
     const lengthArg = command.positionalArgs[0];
 
     if (!lengthArg) {
-      this.telegramService.sendMessage({
+      TelegramService.sendMessage({
         chatId,
         markdown: new MarkdownBuilder(
           'Please provide a word length. Usage: SCRABBLE [NUMBER]',
@@ -51,7 +49,7 @@ export class ScrabbleService extends AppService {
     const length = parseInt(lengthArg);
 
     if (isNaN(length) || length <= 0) {
-      this.telegramService.sendMessage({
+      TelegramService.sendMessage({
         chatId,
         markdown: new MarkdownBuilder(
           'Please provide a valid positive number for word length.',
@@ -78,6 +76,6 @@ export class ScrabbleService extends AppService {
         `TODO: Generate a ${length}-letter word and ask user to guess if it's a valid Scrabble word.`,
     );
 
-    this.telegramService.sendMessage({ chatId, markdown: response });
+    TelegramService.sendMessage({ chatId, markdown: response });
   }
 }
