@@ -15,20 +15,20 @@ export const mockSpreadsheetData = [
   ['4', 'Alice Brown', 'alice@example.com', 'pending', '2024-01-04'],
 ];
 
-const createMockSpreadsheetApp = () => {
+export const createMockSpreadsheetApp = () => {
   const spreadsheetInstances = new Map<
     string,
     GoogleAppsScript.Spreadsheet.Spreadsheet
   >();
 
   const createMockSpreadsheet = (
-    initialData: any[][] = [],
+    initialData: string[][] = [],
   ): GoogleAppsScript.Spreadsheet.Spreadsheet => {
-    const sheetMap = new Map<string, any>();
+    const sheetMap = new Map<string, GoogleAppsScript.Spreadsheet.Sheet>();
 
     const createSheet = (
       sheetName: string,
-      initialSheetData: any[][] = [],
+      initialSheetData: string[][] = [],
     ): GoogleAppsScript.Spreadsheet.Sheet => {
       const data = initialSheetData.map((row) => [...row]);
 
@@ -50,7 +50,9 @@ const createMockSpreadsheetApp = () => {
           .with({
             findNext: () => {
               for (let i = 0; i < data.length; i++) {
-                if (data[i][searchColumn - 1] === searchValue) {
+                // Google sheets use non strict equality check
+                // eslint-disable-next-line eqeqeq
+                if (data[i][searchColumn - 1] == searchValue) {
                   return createMockFoundCell(i);
                 }
               }
@@ -68,14 +70,13 @@ const createMockSpreadsheetApp = () => {
       ): GoogleAppsScript.Spreadsheet.Range => {
         return new Builder(MockRange)
           .with({
-            setValues: (values: any[][]) => {
-              if (
-                values &&
-                values.length > 0 &&
-                rowIndex >= 0 &&
-                rowIndex < data.length
-              ) {
-                data[rowIndex] = values[0];
+            setValues: (values: string[][]) => {
+              if (values && values.length > 0) {
+                if (rowIndex >= 0 && rowIndex < data.length) {
+                  data[rowIndex] = values[0];
+                } else if (rowIndex >= data.length) {
+                  data.push(values[0]);
+                }
               }
               return createMockRange(rowIndex, colIndex, numRows, numCols);
             },
@@ -100,17 +101,27 @@ const createMockSpreadsheetApp = () => {
         MockSheet,
       )
         .with({
-          getRange: ((
-            row: number,
-            col: number,
-            numRows: number,
-            numCols: number,
+          getRange: (
+            rowOrA1Notation: GoogleAppsScript.Integer | string,
+            column?: GoogleAppsScript.Integer,
+            numRows?: GoogleAppsScript.Integer,
+            numCols?: GoogleAppsScript.Integer,
           ) => {
-            return createMockRange(row - 1, col - 1, numRows, numCols);
-          }) as any, //TODO: Fix as any
+            if (typeof rowOrA1Notation === 'string') {
+              // Handle A1 notation - for simplicity, assume it's a single cell
+              return createMockRange(0, 0, 1, 1);
+            }
+
+            const row = rowOrA1Notation;
+            const col = column || 1;
+            const rows = numRows || 1;
+            const cols = numCols || 1;
+
+            return createMockRange(row - 1, col - 1, rows, cols);
+          },
           getLastRow: () => data.length,
           getLastColumn: () => data[0]?.length || 0,
-          appendRow: (values: any[]): GoogleAppsScript.Spreadsheet.Sheet => {
+          appendRow: (values: string[]): GoogleAppsScript.Spreadsheet.Sheet => {
             data.push(values);
             return mockSheet;
           },
@@ -157,5 +168,3 @@ const createMockSpreadsheetApp = () => {
     })
     .build();
 };
-
-export const MockSpreadsheetAppWithData = createMockSpreadsheetApp();

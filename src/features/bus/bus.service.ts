@@ -1,5 +1,4 @@
 import { ConfigService } from '@core/config';
-import { SpreadsheetService } from '@core/spreadsheet';
 import { Message, TelegramService, Update } from '@core/telegram';
 import { BusConfig } from './bus.config';
 import {
@@ -14,6 +13,7 @@ import { hasKey } from '@core/util/predicates';
 import { AppService } from '@core/appService';
 import { Command } from '@core/util/command';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
+import { BusData } from './bus.data';
 
 export class BusService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'bus';
@@ -26,14 +26,14 @@ export class BusService extends AppService {
 
   configService: ConfigService<BusConfig>;
   loggerService: LoggerService;
-  spreadsheetService: SpreadsheetService;
+  busData: BusData;
   SHEET_INDEX = 1;
 
   constructor() {
     super();
     this.configService = new ConfigService();
     this.loggerService = new LoggerService();
-    this.spreadsheetService = new SpreadsheetService();
+    this.busData = new BusData();
   }
 
   async processUpdate(update: Update) {
@@ -60,25 +60,10 @@ export class BusService extends AppService {
     const text = message.text ?? '';
     const command = new Command(text);
 
-    const userSpreadsheet = this.spreadsheetService.open();
-    const userSheet = SpreadsheetService.getSheetByIndex(
-      userSpreadsheet,
-      this.SHEET_INDEX,
-    );
-
-    if (!userSheet) {
-      this.loggerService.error('User sheet not found');
-      return;
-    }
-
-    const userRow = SpreadsheetService.findRowByLookupValue(
-      userSheet,
-      1,
-      chatId.toString(),
-    );
-
     const busStopId =
-      command.positionalArgs[0] ?? this.getSavedBusStopId(userRow) ?? '04167';
+      command.positionalArgs[0] ??
+      this.busData.getLastBusStopQuery(message.chat.id) ??
+      '04167';
     let response = new MarkdownBuilder(constants.MSG_INVALID_BUS_CODE);
 
     const isValidBusStopId = /^\d+$/.test(busStopId);
@@ -94,30 +79,12 @@ export class BusService extends AppService {
     TelegramService.sendMessage({ chatId, markdown: response });
 
     if (command.positionalArgs[0] !== undefined && isValidBusStopId) {
-      const userData = [
-        chatId,
-        message.from?.first_name ?? '',
+      this.busData.updateLastBusStopQuery(
+        message.chat.id,
+        message.from?.first_name ?? 'Unknown',
         busStopId,
-        new Date(),
-      ];
-
-      SpreadsheetService.createOrUpdateRow(
-        userSheet,
-        1,
-        chatId.toString(),
-        userData,
       );
     }
-  }
-
-  getSavedBusStopId(
-    userRow: GoogleAppsScript.Spreadsheet.Range | null,
-  ): string | null {
-    if (userRow !== null) {
-      const busStopId = SpreadsheetService.getCellValue(userRow, 3);
-      return busStopId;
-    }
-    return null;
   }
 
   getBusArrivals(busStopNo: string): ResponseBody<BusArrivalResponse> {
@@ -148,7 +115,6 @@ export class BusService extends AppService {
 
     results.push(`🚍 BUS STOP ${busArrivalResponse.BusStopCode}`);
 
-    this.loggerService.debug(`services: ${busArrivalResponse.Services}`);
     if (busArrivalResponse.Services.length === 0) {
       results.push(
         `${constants.MSG_NO_BUSES} ${busArrivalResponse.BusStopCode}! :(`,

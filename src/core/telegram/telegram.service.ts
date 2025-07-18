@@ -14,7 +14,7 @@ export class TelegramService {
   private static telegramURL = `https://api.telegram.org/bot${TelegramService.token}`;
 
   private static fetchAndLog<T>(url: string): ResponseBody<T> {
-    TelegramService.loggerService.info(`Fetching telegram response: ${url}`);
+    TelegramService.loggerService.info('Fetching telegram response...');
     const result = UrlFetchService.fetch(url);
     const contentText = hasKey(result, 'Ok')
       ? result.Ok.getContentText()

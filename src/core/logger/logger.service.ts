@@ -1,21 +1,17 @@
-import { SpreadsheetService } from '@core/spreadsheet';
-import { LOG_LEVEL } from './logger.type';
+import { LogLevel } from './logger.type';
+import { LoggerData } from './logger.data';
 
 export class LoggerService {
-  private spreadsheetService: SpreadsheetService;
-  SHEET_INDEX = 0;
+  private loggerData: LoggerData;
 
   constructor() {
-    this.spreadsheetService = new SpreadsheetService();
+    this.loggerData = new LoggerData();
   }
 
-  private log(details: unknown, logLevel: LOG_LEVEL) {
+  private log(details: unknown, logLevel: LogLevel) {
     const entry = [new Date(), logLevel, details];
     Logger.log(entry);
-    this.spreadsheetService
-      .open()
-      .getSheets()
-      [this.SHEET_INDEX].appendRow(entry);
+    this.loggerData.createLogEntry(logLevel, details);
   }
 
   debug(details: unknown) {

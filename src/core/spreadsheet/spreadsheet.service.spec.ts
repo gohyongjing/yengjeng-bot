@@ -1,176 +1,293 @@
 import { SpreadsheetService } from './spreadsheet.service';
+import { MockLogger } from '@core/googleAppsScript';
+import {
+  mockSpreadsheetData,
+  createMockSpreadsheetApp,
+} from './spreadsheet.mock';
+
+jest.mock('@core/config', () => ({
+  ConfigService: jest.fn().mockImplementation(() => ({
+    get: jest.fn().mockReturnValue('test-spreadsheet-id'),
+  })), //TODO: Check if this is needed
+}));
 
 describe('SpreadsheetService', () => {
-  let mockSheet: jest.Mocked<GoogleAppsScript.Spreadsheet.Sheet>;
-  let mockSpreadsheet: jest.Mocked<GoogleAppsScript.Spreadsheet.Spreadsheet>;
-  let mockRange: jest.Mocked<GoogleAppsScript.Spreadsheet.Range>;
-  let mockCell: jest.Mocked<GoogleAppsScript.Spreadsheet.Range>;
-  let mockTextFinder: jest.Mocked<GoogleAppsScript.Spreadsheet.TextFinder>;
+  let underTest: SpreadsheetService;
 
-  beforeEach(() => {
-    mockCell = {
-      getRow: jest.fn().mockReturnValue(2),
-      getValue: jest.fn().mockReturnValue('test-value'),
-    } as any;
-
-    mockTextFinder = {
-      findNext: jest.fn().mockReturnValue(mockCell),
-    } as any;
-
-    mockRange = {
-      getCell: jest.fn().mockReturnValue(mockCell),
-      setValues: jest.fn(),
-      createTextFinder: jest.fn().mockReturnValue(mockTextFinder),
-    } as any;
-
-    mockSheet = {
-      getRange: jest.fn().mockReturnValue(mockRange),
-      getLastRow: jest.fn().mockReturnValue(10),
-      getLastColumn: jest.fn().mockReturnValue(5),
-      appendRow: jest.fn(),
-      createTextFinder: jest.fn().mockReturnValue(mockTextFinder),
-      getName: jest.fn().mockReturnValue('TestSheet'),
-    } as any;
-
-    mockSpreadsheet = {
-      getSheets: jest.fn().mockReturnValue([mockSheet]),
-    } as any;
+  beforeAll(() => {
+    global.Logger = MockLogger;
   });
 
-  describe('findRowByLookupValue', () => {
-    it('should find a row when lookup value exists', () => {
-      const result = SpreadsheetService.findRowByLookupValue(
-        mockSheet,
-        1,
-        'test-value',
-      );
-
-      expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 10, 1);
-      expect(mockRange.createTextFinder).toHaveBeenCalledWith('test-value');
-      expect(mockTextFinder.findNext).toHaveBeenCalled();
-      expect(result).toBe(mockRange);
-    });
-
-    it('should return null when lookup value does not exist', () => {
-      mockTextFinder.findNext.mockReturnValue(null);
-
-      const result = SpreadsheetService.findRowByLookupValue(
-        mockSheet,
-        1,
-        'non-existent',
-      );
-
-      expect(result).toBeNull();
-    });
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.SpreadsheetApp = createMockSpreadsheetApp();
+    underTest = new SpreadsheetService('TestSheet');
   });
 
   describe('createRow', () => {
-    it('should create a new row with provided values', () => {
+    it('should create a new row with provided values and return those values', () => {
       const values = ['value1', 'value2', 'value3'];
 
-      const result = SpreadsheetService.createRow(mockSheet, values);
+      const result = underTest.createRow(values);
 
-      expect(mockSheet.appendRow).toHaveBeenCalledWith(values);
-      expect(mockSheet.getLastRow).toHaveBeenCalled();
-      expect(mockSheet.getRange).toHaveBeenCalledWith(10, 1, 1, 3);
-      expect(result).toBe(mockRange);
+      expect(result).toEqual(values);
+    });
+
+    it('should handle empty values array', () => {
+      const values: unknown[] = [];
+
+      const result = underTest.createRow(values);
+
+      expect(result).toEqual(values);
+    });
+
+    it('should handle single value', () => {
+      const values = ['single-value'];
+
+      const result = underTest.createRow(values);
+
+      expect(result).toEqual(values);
+    });
+
+    it('should handle mixed data types', () => {
+      const values = ['string', 123, true, null];
+
+      const result = underTest.createRow(values);
+
+      expect(result).toEqual(values);
+    });
+  });
+
+  describe('readRow', () => {
+    describe('when row is found', () => {
+      it('should return the values in the found row', () => {
+        const lookupColumnNumber = 1;
+        const expectedRow = mockSpreadsheetData[1];
+        const lookupValue = expectedRow[0];
+
+        const result = underTest.readRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual(expectedRow);
+      });
+
+      it('should find row in different columns', () => {
+        const lookupColumnNumber = 2;
+        const expectedRow = mockSpreadsheetData[2];
+        const lookupValue = expectedRow[1];
+
+        const result = underTest.readRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual(expectedRow);
+      });
+
+      it('should handle case-sensitive search', () => {
+        const lookupColumnNumber = 3;
+        const expectedRow = mockSpreadsheetData[3];
+        const lookupValue = expectedRow[2];
+
+        const result = underTest.readRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual(expectedRow);
+      });
+    });
+
+    describe('when row is not found', () => {
+      it('should return null for non-existent value', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = 'non-existent-value';
+
+        const result = underTest.readRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null for empty search value', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = '';
+
+        const result = underTest.readRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toBeNull();
+      });
     });
   });
 
   describe('updateRow', () => {
-    it('should update an existing row with new values', () => {
-      const values = ['new-value1', 'new-value2', 'new-value3'];
+    describe('when row exists', () => {
+      it('should update existing row with new values', () => {
+        const lookupColumnNumber = 1;
+        const newValues = mockSpreadsheetData[1];
+        const lookupValue = newValues[0];
 
-      const result = SpreadsheetService.updateRow(mockRange, values);
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          newValues,
+        );
 
-      expect(mockRange.setValues).toHaveBeenCalledWith([values]);
-      expect(result).toBe(mockRange);
+        expect(result).toEqual(newValues);
+      });
+
+      it('should handle partial row update', () => {
+        const lookupColumnNumber = 2;
+        const lookupValue = 'Jane Smith';
+        const partialValues = ['2', 'Jane Smith', 'jane.updated@example.com'];
+
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          partialValues,
+        );
+
+        expect(result).toEqual(partialValues);
+      });
+
+      it('should handle update with more columns than original', () => {
+        const lookupColumnNumber = 3;
+        const lookupValue = 'bob@example.com';
+        const expandedValues = [
+          '3',
+          'Bob Johnson',
+          'bob@example.com',
+          'active',
+          '2024-01-03',
+          'extra',
+          'columns',
+        ];
+
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          expandedValues,
+        );
+
+        expect(result).toEqual(expandedValues);
+      });
+    });
+
+    describe('when row does not exist', () => {
+      it('should create new row with values', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = 'new-row-value';
+        const values = ['new-row-value', 'new-data', 'created'];
+
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          values,
+        );
+
+        expect(result).toEqual(values);
+      });
+
+      it('should handle empty values array for new row', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = 'empty-new-row';
+        const values: unknown[] = [];
+
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          values,
+        );
+
+        expect(result).toEqual(values);
+      });
+    });
+
+    describe('edge cases', () => {
+      it('should handle update with empty values array', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = '4';
+        const values: unknown[] = [];
+
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          values,
+        );
+
+        expect(result).toEqual(values);
+      });
+
+      it('should handle update with null values', () => {
+        const lookupColumnNumber = 2;
+        const values = mockSpreadsheetData[4];
+        const lookupValue = values[1];
+
+        const result = underTest.updateRow(
+          lookupColumnNumber,
+          lookupValue,
+          values,
+        );
+
+        expect(result).toEqual(values);
+      });
     });
   });
 
-  describe('createOrUpdateRow', () => {
-    it('should update existing row when found', () => {
-      const values = ['value1', 'value2', 'value3'];
+  describe('integration scenarios', () => {
+    it('should handle complete workflow: create, read, update', () => {
+      const initialValues = mockSpreadsheetData[1];
+      const createResult = underTest.createRow(initialValues);
+      expect(createResult).toEqual(initialValues);
 
-      const result = SpreadsheetService.createOrUpdateRow(
-        mockSheet,
+      const readResult = underTest.readRow(1, initialValues[0]);
+      expect(readResult).toEqual(initialValues);
+
+      const updatedValues = mockSpreadsheetData[2];
+      const updateResult = underTest.updateRow(
         1,
-        'existing-value',
-        values,
+        initialValues[0],
+        updatedValues,
       );
-
-      expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 10, 1);
-      expect(mockRange.setValues).toHaveBeenCalledWith([values]);
-      expect(result).toBe(mockRange);
+      expect(updateResult).toEqual(updatedValues);
     });
 
-    it('should create new row when not found', () => {
-      mockTextFinder.findNext.mockReturnValue(null);
-      const values = ['value1', 'value2', 'value3'];
+    it('should handle multiple operations on same data', () => {
+      const row1 = ['user1', 'data1'];
+      const row2 = ['user2', 'data2'];
+      const row3 = ['user3', 'data3'];
 
-      const result = SpreadsheetService.createOrUpdateRow(
-        mockSheet,
-        1,
-        'new-value',
-        values,
-      );
+      underTest.createRow(row1);
+      underTest.createRow(row2);
+      underTest.createRow(row3);
 
-      expect(mockSheet.appendRow).toHaveBeenCalledWith(values);
-      expect(result).toBe(mockRange);
-    });
-  });
+      const updatedRow2 = ['user2', 'updated-data2'];
+      const updateResult = underTest.updateRow(1, 'user2', updatedRow2);
+      expect(updateResult).toEqual(updatedRow2);
 
-  describe('getCellValue', () => {
-    it('should return cell value as string', () => {
-      const result = SpreadsheetService.getCellValue(mockRange, 1);
-
-      expect(mockRange.getCell).toHaveBeenCalledWith(1, 1);
-      expect(mockCell.getValue).toHaveBeenCalled();
-      expect(result).toBe('test-value');
+      const readResult = underTest.readRow(1, 'user1');
+      expect(readResult).toEqual(row1);
     });
 
-    it('should return null for empty cell', () => {
-      mockCell.getValue.mockReturnValue('');
+    it('should handle multiple sheets with different names', () => {
+      const sheet1 = new SpreadsheetService('Users');
+      const sheet2 = new SpreadsheetService('Products');
 
-      const result = SpreadsheetService.getCellValue(mockRange, 1);
+      const values1 = ['user1', 'john'];
+      const values2 = ['product1', 'laptop'];
 
-      expect(result).toBeNull();
-    });
-  });
+      const result1 = sheet1.createRow(values1);
+      const result2 = sheet2.createRow(values2);
 
-  describe('getSheetByName', () => {
-    it('should return sheet when name matches', () => {
-      const result = SpreadsheetService.getSheetByName(
-        mockSpreadsheet,
-        'TestSheet',
-      );
-
-      expect(mockSpreadsheet.getSheets).toHaveBeenCalled();
-      expect(result).toBe(mockSheet);
+      expect(result1).toEqual(values1);
+      expect(result2).toEqual(values2);
     });
 
-    it('should return null when sheet name not found', () => {
-      const result = SpreadsheetService.getSheetByName(
-        mockSpreadsheet,
-        'NonExistentSheet',
-      );
+    it('should handle data persistence across operations', () => {
+      const row1 = ['persistent', 'data1'];
+      const row2 = ['persistent', 'data2'];
 
-      expect(result).toBeNull();
-    });
-  });
+      underTest.createRow(row1);
+      underTest.createRow(row2);
 
-  describe('getSheetByIndex', () => {
-    it('should return sheet when index is valid', () => {
-      const result = SpreadsheetService.getSheetByIndex(mockSpreadsheet, 0);
+      const updatedRow1 = ['persistent', 'updated1'];
+      const updateResult = underTest.updateRow(1, 'persistent', updatedRow1);
+      expect(updateResult).toEqual(updatedRow1);
 
-      expect(mockSpreadsheet.getSheets).toHaveBeenCalled();
-      expect(result).toBe(mockSheet);
-    });
-
-    it('should return null when index is out of bounds', () => {
-      const result = SpreadsheetService.getSheetByIndex(mockSpreadsheet, 5);
-
-      expect(result).toBeNull();
+      const readResult1 = underTest.readRow(1, 'persistent');
+      expect(readResult1).toEqual(updatedRow1);
     });
   });
 });

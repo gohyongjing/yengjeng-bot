@@ -3,28 +3,41 @@ import { SpreadsheetConfig } from './spreadsheet.config';
 
 export class SpreadsheetService {
   private spreadsheetId: string;
+  private sheetName: string;
+  private headers: unknown[] | null;
 
-  constructor() {
+  constructor(sheetName: string, headers: unknown[] | null = null) {
     const configService = new ConfigService<SpreadsheetConfig>();
     this.spreadsheetId = configService.get('SPREADSHEET_ID');
+    this.sheetName = sheetName;
+    this.headers = headers;
   }
 
-  open(): GoogleAppsScript.Spreadsheet.Spreadsheet {
-    return SpreadsheetApp.openById(this.spreadsheetId);
+  private getSheet(): GoogleAppsScript.Spreadsheet.Sheet {
+    const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(this.sheetName);
+
+    if (!sheet) {
+      const newSheet = spreadsheet.insertSheet(this.sheetName);
+      if (this.headers) {
+        newSheet.appendRow(this.headers);
+      }
+      return newSheet;
+    }
+    return sheet;
   }
 
   /**
-   * Finds a row in a sheet by looking up a value in a specific column
-   * @param sheet - The Google Apps Script sheet to search in
+   * Helper function to find a cell by lookup value and return the range
    * @param lookupColumnNumber - The column number to search in (1-indexed)
    * @param lookupValue - The value to search for
    * @returns The range containing the found row, or null if not found
    */
-  static findRowByLookupValue(
-    sheet: GoogleAppsScript.Spreadsheet.Sheet,
+  private getRange(
     lookupColumnNumber: number,
     lookupValue: string,
   ): GoogleAppsScript.Spreadsheet.Range | null {
+    const sheet = this.getSheet();
     const lookupColumn = sheet.getRange(
       1,
       lookupColumnNumber,
@@ -43,108 +56,51 @@ export class SpreadsheetService {
 
   /**
    * Creates a new row in a sheet with the provided values
-   * @param sheet - The Google Apps Script sheet to add the row to
    * @param values - Array of values to add to the new row
-   * @returns The range of the newly created row
+   * @returns The values that were created
    */
-  static createRow(
-    sheet: GoogleAppsScript.Spreadsheet.Sheet,
-    values: unknown[],
-  ): GoogleAppsScript.Spreadsheet.Range {
-    sheet.appendRow(values);
+  createRow(values: unknown[]): unknown[] {
+    const sheet = this.getSheet().appendRow(values);
     const lastRow = sheet.getLastRow();
-    return sheet.getRange(lastRow, 1, 1, values.length);
+    const range = sheet.getRange(lastRow, 1, 1, values.length);
+    return range.getValues()[0];
+  }
+
+  /**
+   * Finds a row in a sheet by looking up a value in a specific column
+   * @param lookupColumnNumber - The column number to search in (1-indexed)
+   * @param lookupValue - The value to search for
+   * @returns The values in the found row, or null if not found
+   */
+  readRow(lookupColumnNumber: number, lookupValue: string): unknown[] | null {
+    const range = this.getRange(lookupColumnNumber, lookupValue);
+
+    if (range) {
+      return range.getValues()[0];
+    }
+
+    return null;
   }
 
   /**
    * Updates an existing row with new values
-   * @param rowRange - The range of the row to update
-   * @param values - Array of values to set in the row
-   * @returns The updated range
-   */
-  static updateRow(
-    rowRange: GoogleAppsScript.Spreadsheet.Range,
-    values: unknown[],
-  ): GoogleAppsScript.Spreadsheet.Range {
-    rowRange.setValues([values]);
-    return rowRange;
-  }
-
-  /**
-   * Creates or updates a row based on a lookup value
-   * @param sheet - The Google Apps Script sheet to operate on
    * @param lookupColumnNumber - The column number to search in (1-indexed)
    * @param lookupValue - The value to search for
    * @param values - Array of values to set in the row
-   * @returns The range of the created or updated row
+   * @returns The values that were updated
    */
-  static createOrUpdateRow(
-    sheet: GoogleAppsScript.Spreadsheet.Sheet,
+  updateRow(
     lookupColumnNumber: number,
     lookupValue: string,
     values: unknown[],
-  ): GoogleAppsScript.Spreadsheet.Range {
-    const existingRow = this.findRowByLookupValue(
-      sheet,
-      lookupColumnNumber,
-      lookupValue,
-    );
+  ): unknown[] {
+    const range = this.getRange(lookupColumnNumber, lookupValue);
 
-    if (existingRow) {
-      return this.updateRow(existingRow, values);
-    } else {
-      return this.createRow(sheet, values);
+    if (range) {
+      range.setValues([values]);
+      return values;
     }
-  }
 
-  /**
-   * Gets a specific cell value from a row range
-   * @param rowRange - The range of the row
-   * @param columnNumber - The column number to get the value from (1-indexed)
-   * @returns The cell value as a string, or null if the cell is empty
-   */
-  static getCellValue(
-    rowRange: GoogleAppsScript.Spreadsheet.Range,
-    columnNumber: number,
-  ): string | null {
-    const cell = rowRange.getCell(1, columnNumber);
-    const value = cell.getValue();
-    return value ? value.toString() : null;
-  }
-
-  /**
-   * Gets a sheet by name from a spreadsheet
-   * @param spreadsheet - The Google Apps Script spreadsheet
-   * @param sheetName - The name of the sheet to get
-   * @returns The sheet, or null if not found
-   */
-  static getSheetByName(
-    spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet,
-    sheetName: string,
-  ): GoogleAppsScript.Spreadsheet.Sheet | null {
-    const sheets = spreadsheet.getSheets();
-    for (const sheet of sheets) {
-      if (sheet.getName() === sheetName) {
-        return sheet;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Gets a sheet by index from a spreadsheet
-   * @param spreadsheet - The Google Apps Script spreadsheet
-   * @param sheetIndex - The index of the sheet to get (0-indexed)
-   * @returns The sheet, or null if index is out of bounds
-   */
-  static getSheetByIndex(
-    spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet,
-    sheetIndex: number,
-  ): GoogleAppsScript.Spreadsheet.Sheet | null {
-    const sheets = spreadsheet.getSheets();
-    if (sheetIndex >= 0 && sheetIndex < sheets.length) {
-      return sheets[sheetIndex];
-    }
-    return null;
+    return this.createRow(values);
   }
 }
