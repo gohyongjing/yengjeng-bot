@@ -26,7 +26,7 @@ export class BusData {
     ]);
   }
 
-  getLastBusStopQuery(userId: number) {
+  readLastBusStopQuery(userId: number) {
     const data = this.spreadsheetService.readRow(1, userId.toString());
     return data ? data[2] : null;
   }

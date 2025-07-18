@@ -62,7 +62,7 @@ export class BusService extends AppService {
 
     const busStopId =
       command.positionalArgs[0] ??
-      this.busData.getLastBusStopQuery(message.chat.id) ??
+      this.busData.readLastBusStopQuery(message.chat.id) ??
       '04167';
     let response = new MarkdownBuilder(constants.MSG_INVALID_BUS_CODE);
 

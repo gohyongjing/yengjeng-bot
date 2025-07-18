@@ -5,12 +5,6 @@ import {
   createMockSpreadsheetApp,
 } from './spreadsheet.mock';
 
-jest.mock('@core/config', () => ({
-  ConfigService: jest.fn().mockImplementation(() => ({
-    get: jest.fn().mockReturnValue('test-spreadsheet-id'),
-  })), //TODO: Check if this is needed
-}));
-
 describe('SpreadsheetService', () => {
   let underTest: SpreadsheetService;
 
@@ -50,11 +44,79 @@ describe('SpreadsheetService', () => {
     });
 
     it('should handle mixed data types', () => {
-      const values = ['string', 123, true, null];
+      const values = [
+        'string',
+        123,
+        true,
+        null,
+        '',
+        'HELLO123',
+        123.45,
+        Number.MAX_SAFE_INTEGER,
+      ];
 
       const result = underTest.createRow(values);
 
       expect(result).toEqual(values);
+    });
+
+    it('should handle all input types for row creation without throwing errors', () => {
+      const testInputs = [
+        'string message',
+        123,
+        { key: 'value' },
+        ['array', 'of', 'items'],
+        null,
+        undefined,
+        '',
+        '   ',
+        'message with "quotes"',
+        'message with \n newlines',
+        'message with \t tabs',
+        'message with unicode: 🚀',
+        new Error('test error'),
+        new Date(),
+        true,
+        false,
+      ];
+
+      testInputs.forEach((input) => {
+        expect(() => {
+          underTest.createRow([input]);
+        }).not.toThrow();
+      });
+    });
+
+    it('should handle very long data values', () => {
+      const longData = 'A'.repeat(10000);
+      expect(() => {
+        underTest.createRow([longData]);
+      }).not.toThrow();
+    });
+
+    it('should handle special characters and encoding', () => {
+      const specialInputs = [
+        'data with émojis 🎉',
+        'data with 中文',
+        'data with русский',
+        'data with العربية',
+        'data with 🚀🚁🚂🚃🚄🚅',
+        'data with \x00\x01\x02',
+        'data with \u0000\u0001\u0002',
+      ];
+      specialInputs.forEach((input) => {
+        expect(() => {
+          underTest.createRow([input]);
+        }).not.toThrow();
+      });
+    });
+
+    it('should handle high volume row creation', () => {
+      expect(() => {
+        for (let i = 0; i < 100; i++) {
+          underTest.createRow([`data ${i}`]);
+        }
+      }).not.toThrow();
     });
   });
 
@@ -227,67 +289,69 @@ describe('SpreadsheetService', () => {
   });
 
   describe('integration scenarios', () => {
-    it('should handle complete workflow: create, read, update', () => {
-      const initialValues = mockSpreadsheetData[1];
-      const createResult = underTest.createRow(initialValues);
-      expect(createResult).toEqual(initialValues);
-
-      const readResult = underTest.readRow(1, initialValues[0]);
-      expect(readResult).toEqual(initialValues);
-
-      const updatedValues = mockSpreadsheetData[2];
-      const updateResult = underTest.updateRow(
-        1,
-        initialValues[0],
-        updatedValues,
-      );
-      expect(updateResult).toEqual(updatedValues);
-    });
-
-    it('should handle multiple operations on same data', () => {
-      const row1 = ['user1', 'data1'];
-      const row2 = ['user2', 'data2'];
-      const row3 = ['user3', 'data3'];
-
-      underTest.createRow(row1);
-      underTest.createRow(row2);
-      underTest.createRow(row3);
-
-      const updatedRow2 = ['user2', 'updated-data2'];
-      const updateResult = underTest.updateRow(1, 'user2', updatedRow2);
-      expect(updateResult).toEqual(updatedRow2);
-
-      const readResult = underTest.readRow(1, 'user1');
-      expect(readResult).toEqual(row1);
-    });
-
-    it('should handle multiple sheets with different names', () => {
+    it('should handle multiple operations on different sheets', () => {
       const sheet1 = new SpreadsheetService('Users');
       const sheet2 = new SpreadsheetService('Products');
+      const userData = ['user1', 'john'];
+      const productData = ['product1', 'laptop'];
+      const userResult = sheet1.createRow(userData);
+      const productResult = sheet2.createRow(productData);
+      expect(userResult).toEqual(userData);
+      expect(productResult).toEqual(productData);
 
-      const values1 = ['user1', 'john'];
-      const values2 = ['product1', 'laptop'];
+      const readUserResult = sheet1.readRow(1, 'user1');
+      const readProductResult = sheet2.readRow(1, 'product1');
+      expect(readUserResult).toEqual(userData);
+      expect(readProductResult).toEqual(productData);
 
-      const result1 = sheet1.createRow(values1);
-      const result2 = sheet2.createRow(values2);
+      const updatedUserData = ['user1', 'john-updated'];
+      const newUserData = ['user2', 'jane'];
+      const updateResult = sheet1.updateRow(1, 'user1', updatedUserData);
+      const createResult = sheet1.updateRow(1, 'user2', newUserData);
+      expect(updateResult).toEqual(updatedUserData);
+      expect(createResult).toEqual(newUserData);
 
-      expect(result1).toEqual(values1);
-      expect(result2).toEqual(values2);
+      const finalReadUser1 = sheet1.readRow(1, 'user1');
+      const finalReadUser2 = sheet1.readRow(1, 'user2');
+      const finalReadProduct = sheet2.readRow(1, 'product1');
+      expect(finalReadUser1).toEqual(updatedUserData);
+      expect(finalReadUser2).toEqual(newUserData);
+      expect(finalReadProduct).toEqual(productData);
     });
 
-    it('should handle data persistence across operations', () => {
-      const row1 = ['persistent', 'data1'];
-      const row2 = ['persistent', 'data2'];
+    it('should handle multiple rows on the same sheet', () => {
+      const row1 = ['user1', 'john'];
+      const row2 = ['user2', 'jane'];
+      const row3 = ['user3', 'bob'];
+      const result1 = underTest.createRow(row1);
+      const result2 = underTest.createRow(row2);
+      const result3 = underTest.createRow(row3);
+      expect(result1).toEqual(row1);
+      expect(result2).toEqual(row2);
+      expect(result3).toEqual(row3);
 
-      underTest.createRow(row1);
-      underTest.createRow(row2);
+      const readRow1 = underTest.readRow(1, 'user1');
+      const readRow2 = underTest.readRow(1, 'user2');
+      const readRow3 = underTest.readRow(1, 'user3');
+      expect(readRow1).toEqual(row1);
+      expect(readRow2).toEqual(row2);
+      expect(readRow3).toEqual(row3);
 
-      const updatedRow1 = ['persistent', 'updated1'];
-      const updateResult = underTest.updateRow(1, 'persistent', updatedRow1);
-      expect(updateResult).toEqual(updatedRow1);
+      const updatedRow2 = ['user2', 'jane-updated'];
+      const newRow4 = ['user4', 'alice'];
+      const updateResult = underTest.updateRow(1, 'user2', updatedRow2);
+      const createResult = underTest.updateRow(1, 'user4', newRow4);
+      expect(updateResult).toEqual(updatedRow2);
+      expect(createResult).toEqual(newRow4);
 
-      const readResult1 = underTest.readRow(1, 'persistent');
-      expect(readResult1).toEqual(updatedRow1);
+      const finalReadRow1 = underTest.readRow(1, 'user1');
+      const finalReadRow2 = underTest.readRow(1, 'user2');
+      const finalReadRow3 = underTest.readRow(1, 'user3');
+      const finalReadRow4 = underTest.readRow(1, 'user4');
+      expect(finalReadRow1).toEqual(row1);
+      expect(finalReadRow2).toEqual(updatedRow2);
+      expect(finalReadRow3).toEqual(row3);
+      expect(finalReadRow4).toEqual(newRow4);
     });
   });
 });
