@@ -51,6 +51,53 @@ describe('ScrabbleService', () => {
     });
   });
 
+  describe('reply keyboard functionality', () => {
+    it('should send reply keyboard when starting game', () => {
+      const message = new Builder(MockMessage)
+        .with({
+          text: 'scrabble start 2',
+          chat: MockChat,
+        })
+        .build();
+
+      underTest.processMessage(message);
+
+      const callArgs = sendMessage.mock.calls[0][0];
+      expect(callArgs).toContain('reply_markup');
+      expect(callArgs).toContain('keyboard');
+      expect(callArgs).toContain(encodeURIComponent('SCRABBLE GUESS YES'));
+      expect(callArgs).toContain(encodeURIComponent('SCRABBLE GUESS NO'));
+    });
+
+    it('should send reply keyboard after each guess', () => {
+      const startMessage = new Builder(MockMessage)
+        .with({
+          text: 'scrabble start 2',
+          chat: MockChat,
+        })
+        .build();
+      underTest.processMessage(startMessage);
+      jest.clearAllMocks();
+
+      const guessMessage = new Builder(MockMessage)
+        .with({
+          text: 'scrabble guess yes',
+          chat: MockChat,
+        })
+        .build();
+
+      underTest.processMessage(guessMessage);
+
+      const secondCallArgs = sendMessage.mock.calls[1][0];
+      expect(secondCallArgs).toContain('reply_markup');
+      expect(secondCallArgs).toContain('keyboard');
+      expect(secondCallArgs).toContain(
+        encodeURIComponent('SCRABBLE GUESS YES'),
+      );
+      expect(secondCallArgs).toContain(encodeURIComponent('SCRABBLE GUESS NO'));
+    });
+  });
+
   describe('processMessage', () => {
     it('should call sendMessage when processing a valid command', () => {
       const message = new Builder(MockMessage)
