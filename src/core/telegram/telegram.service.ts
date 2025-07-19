@@ -1,5 +1,10 @@
 import { ConfigService } from '@core/config';
-import { Message, ResponseBody, User } from './telegram.type';
+import {
+  Message,
+  ReplyKeyboardMarkup,
+  ResponseBody,
+  User,
+} from './telegram.type';
 import { TelegramConfig } from './telegram.config';
 import { UrlFetchService } from '@core/urlFetch';
 import { hasKey } from '@core/util/predicates';
@@ -35,12 +40,17 @@ export class TelegramService {
   static sendMessage({
     chatId,
     markdown,
+    replyKeyboardMarkup,
   }: {
     chatId: number;
     markdown: MarkdownBuilder;
+    replyKeyboardMarkup?: ReplyKeyboardMarkup | undefined;
   }): ResponseBody<Message> {
     const encodedText = encodeURIComponent(markdown.build());
-    const url = `${TelegramService.telegramURL}/sendMessage?chat_id=${chatId}&text=${encodedText}&parse_mode=MarkdownV2`;
+    const encodedReplyKeyboardMarkup = replyKeyboardMarkup
+      ? encodeURIComponent(JSON.stringify(replyKeyboardMarkup))
+      : '';
+    const url = `${TelegramService.telegramURL}/sendMessage?chat_id=${chatId}&text=${encodedText}&reply_markup=${encodedReplyKeyboardMarkup}&parse_mode=MarkdownV2`;
     return TelegramService.fetchAndLog(url);
   }
 

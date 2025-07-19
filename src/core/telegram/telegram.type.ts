@@ -61,3 +61,27 @@ export type Update = {
   | { channel_post: Message }
   | { edited_channel_post: Message }
 );
+
+export type InlineKeyboardButton = {
+  text: string;
+  url?: string;
+  callback_data?: string;
+};
+
+export type InlineKeyboardMarkup = {
+  inline_keyboard: InlineKeyboardButton[][];
+};
+
+export type ReplyKeyboardMarkup = {
+  keyboard: string[][];
+  resize_keyboard?: boolean;
+  one_time_keyboard?: boolean;
+  input_field_placeholder?: string;
+  selective?: boolean;
+};
+
+export type KeyboardButton = {
+  text: string;
+  request_contact?: boolean;
+  request_location?: boolean;
+};

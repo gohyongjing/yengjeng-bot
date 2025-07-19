@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 npm run lint:fix-all
 npm run format:fix-all
 npm run check:all

@@ -11,6 +11,7 @@ export class ScrabbleData {
     this.spreadsheetService = new SpreadsheetService(ScrabbleData.SHEET_NAME, [
       'User Id',
       'Game State',
+      'Guessing Word',
       'Updated At',
     ]);
     this.logger = new LoggerService();
