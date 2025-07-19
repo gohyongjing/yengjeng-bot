@@ -5,7 +5,7 @@ import { MockSelection } from './selection.mock';
 import { MockSpreadsheet } from './spreadsheet.mock';
 import { MockTextFinder } from './textFinder.mock';
 
-export const appendRow = jest.fn((_rowContents: any[]) => {
+export const appendRow = jest.fn((_rowContents: unknown[]) => {
   return MockSheet;
 });
 

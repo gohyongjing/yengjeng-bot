@@ -7,7 +7,7 @@ export class MarkdownBuilder {
 
   raw(text: string): MarkdownBuilder {
     for (const char of text) {
-      if (!char.match(/^[a-zA-Z0-9 \n\\]+$/)) {
+      if (!char.match(/^[a-zA-Z0-9 \n\\\p{Emoji}]+$/u)) {
         this.texts.push('\\');
       }
       this.texts.push(char);

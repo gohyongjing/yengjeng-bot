@@ -1,5 +1,5 @@
 /** @type {import('eslint').Linter.Config} */
-const eslintConfig = {
+module.exports = {
   extends: [
     'eslint:recommended',
     './node_modules/gts/',
@@ -29,6 +29,7 @@ const eslintConfig = {
             caughtErrorsIgnorePattern: '^_',
           },
         ],
+        '@typescript-eslint/ban-ts-comment': 'off',
         'prettier/prettier': 'off',
       },
     },
@@ -39,8 +40,4 @@ const eslintConfig = {
       },
     },
   ],
-};
-
-module.exports = {
-  ...eslintConfig,
 };
