@@ -1,4 +1,4 @@
-export const log = jest.fn((formatOrValue: any | string, ..._values: any[]) => {
+export const log = jest.fn((formatOrValue: unknown, ..._values: unknown[]) => {
   if (typeof formatOrValue === 'string') {
     console.log(formatOrValue);
   }

@@ -8,10 +8,11 @@ export class VersionService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'version';
 
   major: number = 0;
-  minor: number = 1;
+  minor: number = 2;
   patch: number = 3;
 
   changeLog = {
+    '0.2.3': ['Add Scrabble word guessing game'],
     '0.1.3': ['Migrate bus arrival API to v3'],
     '0.1.2': [
       'Fix bug causing help, version command to be ignored',
@@ -22,12 +23,10 @@ export class VersionService extends AppService {
   };
 
   loggerService: LoggerService;
-  telegramService: TelegramService;
 
   constructor() {
     super();
     this.loggerService = new LoggerService();
-    this.telegramService = new TelegramService();
   }
 
   override async processUpdate(update: Update): Promise<void> {
@@ -42,7 +41,7 @@ export class VersionService extends AppService {
   processMessage(message: Message) {
     const chatId = message.chat.id;
     const responseText = `Yeng Jeng Bot\n${this.getVersion()}`;
-    this.telegramService.sendMessage({
+    TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder(responseText),
     });

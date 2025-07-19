@@ -1,1 +1,1 @@
-export type LOG_LEVEL = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';

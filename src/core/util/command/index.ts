@@ -1,1 +1,1 @@
-export * from './command.util';
+export { Command } from './command.util';

@@ -1,1 +1,1 @@
-export * from './version.service';
+export { VersionService } from './version.service';

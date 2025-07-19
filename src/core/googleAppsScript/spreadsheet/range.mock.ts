@@ -134,6 +134,7 @@ export const MockRange: GoogleAppsScript.Spreadsheet.Range = {
   // getTextStyle: (): TextStyle,
   // getTextStyles: (): TextStyle[][],
   // getValue: (): any,
+  getValues: () => [],
   // getValues: (): any[][],
   // getVerticalAlignment: (): string,
   // getVerticalAlignments: (): string[][],
@@ -239,4 +240,4 @@ export const MockRange: GoogleAppsScript.Spreadsheet.Range = {
   // splitTextToColumns: (delimiter: TextToColumnsDelimiter): void,
   // trimWhitespace: (): MockRange,
   // uncheck: (): MockRange,
-} as GoogleAppsScript.Spreadsheet.Range;
+} as unknown as GoogleAppsScript.Spreadsheet.Range;

@@ -1,1 +1,1 @@
-export * from './webapp.type';
+export type { WebAppEvent, WebAppPostData } from './webapp.type';

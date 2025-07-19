@@ -1,1 +1,1 @@
-export * from './greeting.service';
+export { GreetingService } from './greeting.service';

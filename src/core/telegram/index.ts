@@ -1,3 +1,9 @@
-export * from './telegram.predicates';
-export * from './telegram.service';
-export * from './telegram.type';
+export { isChat, isMessage, isUpdate } from './telegram.predicates';
+export { TelegramService } from './telegram.service';
+export type {
+  Chat,
+  Message,
+  ResponseBody,
+  Update,
+  User,
+} from './telegram.type';

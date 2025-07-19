@@ -24,7 +24,7 @@ export const MockSpreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet = {
   addViewer: (_emailAddressOrUser: string | GoogleAppsScript.Base.User) =>
     MockSpreadsheet,
   addViewers: (_emailAddresses: string[]) => MockSpreadsheet,
-  appendRow: (_rowContents: any[]) => MockSheet,
+  appendRow: (_rowContents: unknown[]) => MockSheet,
   autoResizeColumn: (_columnPosition: GoogleAppsScript.Integer) => MockSheet,
   copy: (_name: string) => MockSpreadsheet,
   createDeveloperMetadataFinder: () => MockDeveloperMetadataFinder,

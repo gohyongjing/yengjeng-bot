@@ -4,9 +4,10 @@ import { LoggerService } from '@core/logger';
 import { TelegramService, isUpdate } from '@core/telegram';
 import { VersionService } from '@features/version';
 
-// @ts-ignore Main method is unused as it is the entry point
+// Main method is unused as it is the entry point
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function main(): void {
-  new TelegramService().setWebhook();
+  TelegramService.setWebhook();
   const loggerService = new LoggerService();
   loggerService.info({ doGet, doPost });
   loggerService.info('Yeng Jeng Bot ready!');

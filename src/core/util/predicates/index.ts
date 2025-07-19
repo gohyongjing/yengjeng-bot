@@ -1,1 +1,1 @@
-export * from './predicates.util';
+export { isObject, hasKey } from './predicates.util';

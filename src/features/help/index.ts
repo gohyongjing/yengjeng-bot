@@ -1,1 +1,1 @@
-export * from './help.service';
+export { HelpService } from './help.service';

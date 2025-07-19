@@ -1,5 +1,5 @@
 /** @type {import('eslint').Linter.Config} */
-const eslintConfig = {
+module.exports = {
   extends: [
     'eslint:recommended',
     './node_modules/gts/',
@@ -21,32 +21,17 @@ const eslintConfig = {
       },
       rules: {
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          {
+            argsIgnorePattern: '^_',
+            varsIgnorePattern: '^_',
+            caughtErrorsIgnorePattern: '^_',
+          },
+        ],
+        '@typescript-eslint/ban-ts-comment': 'off',
+        'prettier/prettier': 'off',
       },
-      overrides: [
-        {
-          files: ['src/index.ts'],
-          rules: {
-            '@typescript-eslint/ban-ts-comment': 'off',
-            '@typescript-eslint/no-unused-vars': 'off',
-          },
-        },
-        {
-          files: ['**/*.mock.ts', '**/*.spec.ts', '**/*.test.ts'],
-          rules: {
-            'node/no-unpublished-import': 'off',
-            'node/no-extraneous-import': 'error',
-            '@typescript-eslint/ban-ts-comment': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-unused-vars': 'off',
-          },
-        },
-        {
-          files: ['test/env.setup.js'],
-          rules: {
-            'node/no-extraneous-require': 'off',
-          },
-        },
-      ],
     },
     {
       files: ['*.config.js'],
@@ -55,8 +40,4 @@ const eslintConfig = {
       },
     },
   ],
-};
-
-module.exports = {
-  ...eslintConfig,
 };
