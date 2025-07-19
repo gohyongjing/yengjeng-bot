@@ -57,7 +57,7 @@ export class ScrabbleService extends AppService {
 
     const state = this.scrabbleData.readGameState(userId);
     if (command.subCommand === 'START') {
-      const word = this.generateRandomWord(command.length);
+      const word = this.generateWord(command.length);
       this.scrabbleData.updateGameState(userId, {
         status: 'IN PROGRESS',
         guessingWord: word,
@@ -89,7 +89,7 @@ export class ScrabbleService extends AppService {
             isValidWord ? 'a valid' : 'not a valid'
           } Scrabble word!`,
         });
-        const newWord = this.generateRandomWord(state.guessingWord.length);
+        const newWord = this.generateWord(state.guessingWord.length);
         this.scrabbleData.updateGameState(userId, {
           status: 'IN PROGRESS',
           guessingWord: newWord,
@@ -177,11 +177,30 @@ export class ScrabbleService extends AppService {
     return null;
   }
 
+  private generateWord(length: number) {
+    if (Math.random() < 0.25) {
+      return this.generateRandomWord(length);
+    }
+    return this.generateRandomWordWithVowels(length);
+  }
+
   private generateRandomWord(length: number) {
     const chars = [];
     for (let i = 0; i < length; i++) {
       const randomChar = this.generateRandomChar();
       chars.push(randomChar);
+    }
+    return chars.join('');
+  }
+
+  private generateRandomWordWithVowels(length: number) {
+    const chars = [];
+    for (let i = 0; i < length; i++) {
+      if (Math.random() < 0.5) {
+        chars.push(this.generateRandomVowel());
+      } else {
+        chars.push(this.generateRandomChar());
+      }
     }
     return chars.join('');
   }
@@ -192,6 +211,11 @@ export class ScrabbleService extends AppService {
     const randomAscii =
       Math.floor(Math.random() * (maxAscii - minAscii + 1)) + minAscii;
     return String.fromCharCode(randomAscii);
+  }
+
+  private generateRandomVowel() {
+    const vowels = ['A', 'E', 'I', 'O', 'U', 'Y'];
+    return vowels[Math.floor(Math.random() * vowels.length)];
   }
 
   private checkIsValidWord(word: string) {
