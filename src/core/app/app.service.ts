@@ -21,8 +21,11 @@ export class App {
   helpService: HelpService = new HelpService(this.services);
 
   processUpdate(update: Update) {
-    if (hasKey(update, 'message')) {
-      const command = new Command(update.message.text ?? '');
+    if (hasKey(update, 'message') || hasKey(update, 'callback_query')) {
+      const rawCommand = hasKey(update, 'message')
+        ? update.message.text
+        : update.callback_query.data;
+      const command = new Command(rawCommand ?? '');
       for (const service of this.services) {
         if (command.isCommand(service.APP_SERVICE_COMMAND_WORD)) {
           service.processUpdate(update);

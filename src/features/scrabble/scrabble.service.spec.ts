@@ -51,8 +51,8 @@ describe('ScrabbleService', () => {
     });
   });
 
-  describe('reply keyboard functionality', () => {
-    it('should send reply keyboard when starting game', () => {
+  describe('inline keyboard functionality', () => {
+    it('should send inline keyboard when starting game', () => {
       const message = new Builder(MockMessage)
         .with({
           text: 'scrabble start 2',
@@ -64,12 +64,12 @@ describe('ScrabbleService', () => {
 
       const callArgs = sendMessage.mock.calls[0][0];
       expect(callArgs).toContain('reply_markup');
-      expect(callArgs).toContain('keyboard');
+      expect(callArgs).toContain('inline_keyboard');
       expect(callArgs).toContain(encodeURIComponent('SCRABBLE GUESS YES'));
       expect(callArgs).toContain(encodeURIComponent('SCRABBLE GUESS NO'));
     });
 
-    it('should send reply keyboard after each guess', () => {
+    it('should send inline keyboard after each guess', () => {
       const startMessage = new Builder(MockMessage)
         .with({
           text: 'scrabble start 2',
@@ -90,11 +90,119 @@ describe('ScrabbleService', () => {
 
       const secondCallArgs = sendMessage.mock.calls[1][0];
       expect(secondCallArgs).toContain('reply_markup');
-      expect(secondCallArgs).toContain('keyboard');
+      expect(secondCallArgs).toContain('inline_keyboard');
       expect(secondCallArgs).toContain(
         encodeURIComponent('SCRABBLE GUESS YES'),
       );
       expect(secondCallArgs).toContain(encodeURIComponent('SCRABBLE GUESS NO'));
+    });
+
+    it('should process callback query for YES guess', () => {
+      const startMessage = new Builder(MockMessage)
+        .with({
+          text: 'scrabble start 2',
+          chat: MockChat,
+        })
+        .build();
+      underTest.processMessage(startMessage);
+      jest.clearAllMocks();
+
+      const callbackQuery = {
+        id: '123',
+        from: { id: MockChat.id, is_bot: false, first_name: 'Test' },
+        data: 'SCRABBLE GUESS YES',
+        chat_instance: 'test-instance',
+      };
+
+      const update = {
+        update_id: 1,
+        callback_query: callbackQuery,
+      } as Update;
+
+      underTest.processUpdate(update);
+
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+
+      const firstCallArgs = sendMessage.mock.calls[0][0];
+      expect(firstCallArgs).toContain(encodeURIComponent("That\\'s"));
+      expect(firstCallArgs).toContain(encodeURIComponent('correct'));
+
+      const secondCallArgs = sendMessage.mock.calls[1][0];
+      expect(secondCallArgs).toContain(encodeURIComponent('Is the word'));
+      expect(secondCallArgs).toContain('inline_keyboard');
+    });
+
+    it('should process callback query for NO guess', () => {
+      const startMessage = new Builder(MockMessage)
+        .with({
+          text: 'scrabble start 2',
+          chat: MockChat,
+        })
+        .build();
+      underTest.processMessage(startMessage);
+      jest.clearAllMocks();
+
+      const callbackQuery = {
+        id: '123',
+        from: { id: MockChat.id, is_bot: false, first_name: 'Test' },
+        data: 'SCRABBLE GUESS NO',
+        chat_instance: 'test-instance',
+      };
+
+      const update = {
+        update_id: 1,
+        callback_query: callbackQuery,
+      } as Update;
+
+      underTest.processUpdate(update);
+
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+
+      const firstCallArgs = sendMessage.mock.calls[0][0];
+      expect(firstCallArgs).toContain(encodeURIComponent("That\\'s"));
+      expect(firstCallArgs).toContain(encodeURIComponent('correct'));
+
+      const secondCallArgs = sendMessage.mock.calls[1][0];
+      expect(secondCallArgs).toContain(encodeURIComponent('Is the word'));
+      expect(secondCallArgs).toContain('inline_keyboard');
+    });
+
+    it('should ignore callback queries that are not scrabble guesses', () => {
+      const callbackQuery = {
+        id: '123',
+        from: { id: MockChat.id, is_bot: false, first_name: 'Test' },
+        data: 'OTHER_CALLBACK_DATA',
+        chat_instance: 'test-instance',
+      };
+
+      const update = {
+        update_id: 1,
+        callback_query: callbackQuery,
+      } as Update;
+
+      underTest.processUpdate(update);
+
+      expect(sendMessage).not.toHaveBeenCalled();
+    });
+
+    it('should handle callback query when game is not in progress', () => {
+      const callbackQuery = {
+        id: '123',
+        from: { id: MockChat.id, is_bot: false, first_name: 'Test' },
+        data: 'SCRABBLE GUESS YES',
+        chat_instance: 'test-instance',
+      };
+
+      const update = {
+        update_id: 1,
+        callback_query: callbackQuery,
+      } as Update;
+
+      underTest.processUpdate(update);
+
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      const callArgs = sendMessage.mock.calls[0][0];
+      expect(callArgs).toContain(encodeURIComponent('Game is not in progress'));
     });
   });
 

@@ -2,6 +2,7 @@ import { ConfigService } from '@core/config';
 import {
   Message,
   ReplyKeyboardMarkup,
+  InlineKeyboardMarkup,
   ResponseBody,
   User,
 } from './telegram.type';
@@ -40,17 +41,19 @@ export class TelegramService {
   static sendMessage({
     chatId,
     markdown,
-    replyKeyboardMarkup,
+    replyMarkup,
   }: {
     chatId: number;
     markdown: MarkdownBuilder;
-    replyKeyboardMarkup?: ReplyKeyboardMarkup | undefined;
+    replyMarkup?: ReplyKeyboardMarkup | InlineKeyboardMarkup | undefined;
   }): ResponseBody<Message> {
     const encodedText = encodeURIComponent(markdown.build());
-    const encodedReplyKeyboardMarkup = replyKeyboardMarkup
-      ? encodeURIComponent(JSON.stringify(replyKeyboardMarkup))
+
+    const encodedMarkup = replyMarkup
+      ? encodeURIComponent(JSON.stringify(replyMarkup))
       : '';
-    const url = `${TelegramService.telegramURL}/sendMessage?chat_id=${chatId}&text=${encodedText}&reply_markup=${encodedReplyKeyboardMarkup}&parse_mode=MarkdownV2`;
+
+    const url = `${TelegramService.telegramURL}/sendMessage?chat_id=${chatId}&text=${encodedText}&reply_markup=${encodedMarkup}&parse_mode=MarkdownV2`;
     return TelegramService.fetchAndLog(url);
   }
 
