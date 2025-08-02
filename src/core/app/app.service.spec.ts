@@ -79,7 +79,7 @@ describe('App', () => {
         expect(() => {
           underTest.processUpdate({
             update_id: 1,
-            editedMessage: MockMessage,
+            edited_message: MockMessage,
           });
         }).not.toThrow();
       });
