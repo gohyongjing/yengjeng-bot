@@ -1,10 +1,5 @@
 import { ConfigService } from '@core/config';
-import {
-  CallbackQuery,
-  Message,
-  TelegramService,
-  Update,
-} from '@core/telegram';
+import { TelegramService, User } from '@core/telegram';
 import { BusConfig } from './bus.config';
 import {
   BusArrivalResponse,
@@ -12,7 +7,6 @@ import {
   ResponseBody,
 } from './bus.type';
 import { constants } from './bus.constants';
-import { LoggerService } from '@core/logger';
 import { Options, UrlFetchService } from '@core/urlFetch';
 import { hasKey } from '@core/util/predicates';
 import { AppService } from '@core/appService';
@@ -30,23 +24,13 @@ export class BusService extends AppService {
   TABLE_COLUMN_WIDTH = 8;
 
   configService: ConfigService<BusConfig>;
-  loggerService: LoggerService;
   busData: BusData;
   SHEET_INDEX = 1;
 
   constructor() {
     super();
     this.configService = new ConfigService();
-    this.loggerService = new LoggerService();
     this.busData = new BusData();
-  }
-
-  async processUpdate(update: Update) {
-    if (hasKey(update, 'message')) {
-      this.processMessage(update.message);
-    } else if (hasKey(update, 'callback_query')) {
-      this.processCallbackQuery(update.callback_query);
-    }
   }
 
   override help(): string {
@@ -57,32 +41,7 @@ export class BusService extends AppService {
     );
   }
 
-  processMessage(message: Message) {
-    const chatId = message.chat.id;
-    const text = message.text ?? '';
-    const command = new Command(text);
-    this.processCommand(command, chatId, message.from?.first_name);
-  }
-
-  processCallbackQuery(callbackQuery: CallbackQuery) {
-    const data = callbackQuery.data;
-    if (!data) {
-      this.loggerService.info(`Invalid callback query data: ${data}`);
-      return;
-    }
-    const command = new Command(data);
-    this.processCommand(
-      command,
-      callbackQuery.from.id,
-      callbackQuery.from.first_name,
-    );
-  }
-
-  private processCommand(
-    command: Command,
-    chatId: number,
-    firstName: string | undefined,
-  ) {
+  override processCommand(command: Command, from: User, chatId: number): void {
     TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder('Gimme a sec, getting the bus timings'),
@@ -115,7 +74,7 @@ export class BusService extends AppService {
     if (command.positionalArgs[0] !== undefined && isValidBusStopId) {
       this.busData.updateLastBusStopQuery(
         chatId,
-        firstName ?? 'Unknown',
+        from.first_name ?? 'Unknown',
         busStopId,
       );
     }

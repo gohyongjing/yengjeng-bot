@@ -9,7 +9,7 @@ export class ScrabbleData {
 
   constructor() {
     this.spreadsheetService = new SpreadsheetService(ScrabbleData.SHEET_NAME, [
-      'User Id',
+      'Chat Id',
       'Game State',
       'Guessing Word',
       'Updated At',
@@ -17,21 +17,21 @@ export class ScrabbleData {
     this.logger = new LoggerService();
   }
 
-  updateGameState(userId: number, newState: GameState) {
-    return this.spreadsheetService.updateRow(1, userId.toString(), [
-      userId,
+  updateGameState(chatId: number, newState: GameState) {
+    return this.spreadsheetService.updateRow(1, chatId.toString(), [
+      chatId,
       newState.status,
       newState.status === 'IN PROGRESS' ? newState.guessingWord : null,
       new Date(),
     ]);
   }
 
-  readGameState(userId: number): GameState {
-    const data = this.spreadsheetService.readRow(1, userId.toString());
+  readGameState(chatId: number): GameState {
+    const data = this.spreadsheetService.readRow(1, chatId.toString());
 
     if (!data) {
       const defaultState: GameState = { status: 'STOPPED' };
-      this.updateGameState(userId, defaultState);
+      this.updateGameState(chatId, defaultState);
       return defaultState;
     }
 
@@ -43,7 +43,7 @@ export class ScrabbleData {
       (guessingWord === null || guessingWord === '')
     ) {
       this.logger.warn(
-        `Inconsistent game state detected for user ${userId}: status is IN PROGRESS but guessing word is ${
+        `Inconsistent game state detected for chat ${chatId}: status is IN PROGRESS but guessing word is ${
           guessingWord === null ? 'null' : 'empty'
         }. Treating as STOPPED.`,
       );

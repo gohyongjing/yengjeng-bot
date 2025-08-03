@@ -1,24 +1,25 @@
-import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
+import { MockLogger } from '@core/googleAppsScript';
 import { Builder } from '@core/util/builder';
 import {
   canParseMarkdownV2,
-  MockChat,
   MockMessage,
   MockTelegramUrlFetchApp,
+  MockUser,
   sendMessage,
 } from '@core/telegram/telegram.mock';
 import { GreetingService } from './greeting.service';
+import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 
 describe('GreetingService', () => {
   let underTest: GreetingService;
 
   beforeAll(() => {
     global.Logger = MockLogger;
-    global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 
   beforeEach(() => {
+    global.SpreadsheetApp = createMockSpreadsheetApp();
     underTest = new GreetingService();
     jest.clearAllMocks();
   });
@@ -26,19 +27,22 @@ describe('GreetingService', () => {
   describe('processUpdate', () => {
     describe('has first name', () => {
       it('should greet user with first name', () => {
-        const first_name = 'John Doe';
         const input_update = {
           update_id: 1,
           message: new Builder(MockMessage)
             .with({
-              chat: new Builder(MockChat).with({ first_name }).build(),
+              text: '/start',
+              from: MockUser,
             })
             .build(),
         };
         underTest.processUpdate(input_update);
 
         const actualUrl = sendMessage.mock.calls[0][0];
-        expect(actualUrl.includes(encodeURIComponent(first_name))).toBeTruthy();
+        expect(
+          actualUrl.includes(encodeURIComponent(MockUser.first_name)),
+        ).toBeTruthy();
+        expect(actualUrl.includes('inline_keyboard')).toBeTruthy();
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,

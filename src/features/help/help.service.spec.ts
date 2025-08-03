@@ -7,6 +7,7 @@ import {
 import { HelpService } from './help.service';
 import { Builder } from '@core/util/builder';
 import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
+import { createMockAppServices } from '@core/appService/appService.mock';
 
 describe('HelpService', () => {
   describe('processUpdate', () => {
@@ -19,18 +20,12 @@ describe('HelpService', () => {
     });
 
     beforeEach(() => {
-      underTest = new HelpService([
-        {
-          APP_SERVICE_COMMAND_WORD: 'app1',
-          processUpdate: async (_update) => {},
-          help: () => 'help message 1',
-        },
-        {
-          APP_SERVICE_COMMAND_WORD: 'app2',
-          processUpdate: async (_update) => {},
-          help: () => 'second help message',
-        },
+      const mockServices = createMockAppServices([
+        { commandWord: 'app1', helpText: 'help message 1' },
+        { commandWord: 'app2', helpText: 'second help message' },
       ]);
+
+      underTest = new HelpService(mockServices);
       jest.clearAllMocks();
     });
 

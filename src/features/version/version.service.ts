@@ -1,8 +1,7 @@
 import { AppService } from '@core/appService';
-import { LoggerService } from '@core/logger';
-import { Message, TelegramService, Update } from '@core/telegram';
+import { TelegramService, User } from '@core/telegram';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
-import { hasKey } from '@core/util/predicates';
+import { Command } from '@core/util/command';
 
 export class VersionService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'version';
@@ -22,24 +21,15 @@ export class VersionService extends AppService {
     '0.1.0': ['Use cristobalgvera/ez-clasp template to manage yengjeng bot'],
   };
 
-  loggerService: LoggerService;
-
-  constructor() {
-    super();
-    this.loggerService = new LoggerService();
-  }
-
-  override async processUpdate(update: Update): Promise<void> {
-    if (hasKey(update, 'message')) {
-      this.processMessage(update.message);
-    }
-  }
   override help(): string {
     return '*VERSION*\nVERSION: Retrieves the version number of Yeng Jeng bot';
   }
 
-  processMessage(message: Message) {
-    const chatId = message.chat.id;
+  override processCommand(
+    _command: Command,
+    _from: User,
+    chatId: number,
+  ): void {
     const responseText = `Yeng Jeng Bot\n${this.getVersion()}`;
     TelegramService.sendMessage({
       chatId,

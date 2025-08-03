@@ -6,28 +6,26 @@ import {
   MockLTAUrlFetchApp,
 } from './bus.mock';
 import { BusService } from './bus.service';
-import {
-  MockLogger,
-  MockSpreadsheetApp,
-  MockUrlFetchApp,
-} from '@core/googleAppsScript';
+import { MockLogger, MockUrlFetchApp } from '@core/googleAppsScript';
 import { constants } from './bus.constants';
 import { Builder } from '@core/util/builder';
 import {
   canParseMarkdownV2,
   MockMessage,
+  MockCallbackQuery,
   MockTelegramUrlFetchApp,
   sendMessage,
+  MockUser,
 } from '@core/telegram/telegram.mock';
 import { BusServiceDetails } from './bus.type';
 import { Command } from '@core/util/command';
+import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 
 describe('BusService', () => {
   let underTest: BusService;
 
   beforeAll(() => {
     global.Logger = MockLogger;
-    global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = new Builder(MockUrlFetchApp)
       .with({
         fetch: (url) => {
@@ -43,6 +41,7 @@ describe('BusService', () => {
   });
 
   beforeEach(() => {
+    global.SpreadsheetApp = createMockSpreadsheetApp();
     underTest = new BusService();
     jest.clearAllMocks();
   });
@@ -175,7 +174,7 @@ describe('BusService', () => {
     describe('valid bus stop code', () => {
       it('should return the bus arrival details', () => {
         const command = new Command('bus 83139');
-        underTest['processCommand'](command, 123456, 'TestUser');
+        underTest['processCommand'](command, MockUser, 123456);
 
         expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
         expect(sendMessage.mock.calls[1][0].includes('15')).toBeTruthy();
@@ -192,7 +191,7 @@ describe('BusService', () => {
     describe('no bus services available', () => {
       it('should return no buses found message', () => {
         const command = new Command('bus 123');
-        underTest['processCommand'](command, 123456, 'TestUser');
+        underTest['processCommand'](command, MockUser, 123456);
 
         expect(
           sendMessage.mock.calls[1][0].includes(
@@ -210,7 +209,7 @@ describe('BusService', () => {
     describe('invalid bus stop code', () => {
       it('should return invalid bus code message', () => {
         const command = new Command('bus abc');
-        underTest['processCommand'](command, 123456, 'TestUser');
+        underTest['processCommand'](command, MockUser, 123456);
 
         expect(
           sendMessage.mock.calls[1][0].includes(
@@ -239,12 +238,9 @@ describe('BusService', () => {
 
   describe('processCallbackQuery', () => {
     it('should process callback query and call processCommand', () => {
-      const callbackQuery = {
-        id: 'test-callback-id',
-        from: { id: 123456, first_name: 'TestUser', is_bot: false },
-        chat_instance: 'test-chat-instance',
-        data: '/bus 83139',
-      };
+      const callbackQuery = new Builder(MockCallbackQuery)
+        .with({ data: '/bus 83139' })
+        .build();
       underTest.processCallbackQuery(callbackQuery);
 
       expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
