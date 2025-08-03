@@ -6,4 +6,5 @@ export type {
   ResponseBody,
   Update,
   User,
+  CallbackQuery,
 } from './telegram.type';

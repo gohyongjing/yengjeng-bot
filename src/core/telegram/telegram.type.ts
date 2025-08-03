@@ -51,15 +51,27 @@ export type Message = {
   buisness_connection_id?: string;
   chat: Chat;
   text?: string;
+  reply_markup?: InlineKeyboardMarkup | ReplyKeyboardMarkup;
+};
+
+export type CallbackQuery = {
+  id: string;
+  from: User;
+  message?: Message;
+  inline_message_id?: string;
+  chat_instance: string;
+  data?: string;
+  game_short_name?: string;
 };
 
 export type Update = {
   update_id: number;
 } & (
   | { message: Message }
-  | { editedMessage: Message }
+  | { edited_message: Message }
   | { channel_post: Message }
   | { edited_channel_post: Message }
+  | { callback_query: CallbackQuery }
 );
 
 export type InlineKeyboardButton = {

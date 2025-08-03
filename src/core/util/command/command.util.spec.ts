@@ -36,11 +36,43 @@ describe('Command', () => {
     });
   });
 
+  describe('commandWord', () => {
+    it('Correctly extracts command word with positional arguments', () => {
+      const underTest = new Command('/test arg1 arg2');
+
+      expect(underTest.commandWord).toBe('test');
+    });
+
+    it('Correctly extracts command word without leading slash', () => {
+      const underTest = new Command('test arg1 arg2');
+
+      expect(underTest.commandWord).toBe('test');
+    });
+
+    it('Handles empty command', () => {
+      const underTest = new Command('');
+
+      expect(underTest.commandWord).toBeNull();
+    });
+
+    it('Handles command with only slash', () => {
+      const underTest = new Command('/');
+
+      expect(underTest.commandWord).toBeNull();
+    });
+  });
+
   describe('positionalArgs', () => {
     it('Ignores keyword arguments', () => {
       const underTest = new Command('cmd pos1 pos2 -key1 val1 pos3 --k2 v2');
 
       expect(underTest.positionalArgs).toEqual(['pos1', 'pos2', 'pos3']);
+    });
+
+    it('Correctly extracts positional arguments', () => {
+      const underTest = new Command('/test arg1 arg2');
+
+      expect(underTest.positionalArgs).toEqual(['arg1', 'arg2']);
     });
   });
 

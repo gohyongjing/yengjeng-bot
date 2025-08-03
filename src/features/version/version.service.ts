@@ -1,18 +1,18 @@
 import { AppService } from '@core/appService';
-import { LoggerService } from '@core/logger';
-import { Message, TelegramService, Update } from '@core/telegram';
+import { TelegramService, User } from '@core/telegram';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
-import { hasKey } from '@core/util/predicates';
+import { Command } from '@core/util/command';
 
 export class VersionService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'version';
 
   major: number = 0;
-  minor: number = 2;
-  patch: number = 3;
+  minor: number = 3;
+  patch: number = 0;
 
   changeLog = {
-    '0.2.3': ['Add Scrabble word guessing game'],
+    '0.3.0': ['Add inline keyboard responses'],
+    '0.2.0': ['Add Scrabble word guessing game'],
     '0.1.3': ['Migrate bus arrival API to v3'],
     '0.1.2': [
       'Fix bug causing help, version command to be ignored',
@@ -22,24 +22,15 @@ export class VersionService extends AppService {
     '0.1.0': ['Use cristobalgvera/ez-clasp template to manage yengjeng bot'],
   };
 
-  loggerService: LoggerService;
-
-  constructor() {
-    super();
-    this.loggerService = new LoggerService();
-  }
-
-  override async processUpdate(update: Update): Promise<void> {
-    if (hasKey(update, 'message')) {
-      this.processMessage(update.message);
-    }
-  }
   override help(): string {
     return '*VERSION*\nVERSION: Retrieves the version number of Yeng Jeng bot';
   }
 
-  processMessage(message: Message) {
-    const chatId = message.chat.id;
+  override processCommand(
+    _command: Command,
+    _from: User,
+    chatId: number,
+  ): void {
     const responseText = `Yeng Jeng Bot\n${this.getVersion()}`;
     TelegramService.sendMessage({
       chatId,

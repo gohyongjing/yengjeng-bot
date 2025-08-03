@@ -1,30 +1,19 @@
-import { Message, TelegramService, Update } from '@core/telegram';
-import { hasKey } from '@core/util/predicates';
+import { TelegramService, User } from '@core/telegram';
 import { AppService } from '@core/appService';
 import { Command } from '@core/util/command';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
-import { LoggerService } from '@core/logger';
 import { ScrabbleData } from './scrabble.data';
 import { constants } from './scrabble.constants';
-import { ScrabbleCommand } from './scrabble.type';
-import { ReplyKeyboardMarkup } from '@core/telegram/telegram.type';
+import { GameState, ScrabbleCommand } from './scrabble.type';
 
 export class ScrabbleService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'scrabble';
 
   scrabbleData: ScrabbleData;
-  loggerService: LoggerService;
 
   constructor() {
     super();
     this.scrabbleData = new ScrabbleData();
-    this.loggerService = new LoggerService();
-  }
-
-  async processUpdate(update: Update) {
-    if (hasKey(update, 'message')) {
-      this.processMessage(update.message);
-    }
   }
 
   override help(): string {
@@ -36,91 +25,103 @@ export class ScrabbleService extends AppService {
     );
   }
 
-  processMessage(message: Message) {
-    const userId = message.chat.id;
-    const text = message.text ?? '';
-    const command = this.parseCommand(text);
-    this.loggerService.info(`Received command: ${JSON.stringify(command)}`);
+  override processCommand(command: Command, from: User, chatId: number): void {
+    const scrabbleCommand = this.parseScrabbleCommand(command);
 
-    if (!command.isValid) {
+    if (!scrabbleCommand.isValid) {
       TelegramService.sendMessage({
-        chatId: userId,
-        markdown: new MarkdownBuilder(command.message),
+        chatId,
+        markdown: new MarkdownBuilder(scrabbleCommand.message),
       });
       return;
     }
 
-    const responses: {
-      message: string;
-      replyKeyboardMarkup?: ReplyKeyboardMarkup;
-    }[] = [];
-
-    const state = this.scrabbleData.readGameState(userId);
-    if (command.subCommand === 'START') {
-      const word = this.generateWord(command.length);
-      this.scrabbleData.updateGameState(userId, {
+    const state = this.scrabbleData.readGameState(chatId);
+    if (scrabbleCommand.subCommand === 'START') {
+      const word = this.generateWord(scrabbleCommand.length);
+      this.scrabbleData.updateGameState(chatId, {
         status: 'IN PROGRESS',
         guessingWord: word,
       });
-      responses.push({
-        message: `Is the word "${word}" a valid Scrabble word?`,
-        replyKeyboardMarkup: {
-          keyboard: [['/SCRABBLE GUESS YES'], ['/SCRABBLE GUESS NO']],
-          one_time_keyboard: true,
+      TelegramService.sendMessage({
+        chatId,
+        markdown: new MarkdownBuilder(
+          `Is the word "${word}" a valid Scrabble word?`,
+        ),
+        replyMarkup: {
+          inline_keyboard: [
+            [
+              { text: 'Yes', callback_data: 'SCRABBLE GUESS YES' },
+              { text: 'No', callback_data: 'SCRABBLE GUESS NO' },
+            ],
+          ],
         },
       });
-    } else if (command.subCommand === 'STOP') {
-      this.scrabbleData.updateGameState(userId, { status: 'STOPPED' });
-      responses.push({ message: constants.MSG_GAME_STOPPED });
-    } else if (command.subCommand === 'GUESS') {
-      if (state.status === 'STOPPED') {
-        responses.push({
-          message: `${constants.MSG_GAME_NOT_IN_PROGRESS}\n${constants.HELP_START}`,
-        });
-      } else {
-        const word = state.guessingWord;
-        const guess = command.guess;
-        const isValidWord = this.checkIsValidWord(word);
-        const isCorrectGuess = isValidWord === guess;
-        responses.push({
-          message: `${isCorrectGuess ? '✅ ' : '❌'} That's ${
-            isCorrectGuess ? 'correct' : 'incorrect'
-          }! The word "${word}" is ${
-            isValidWord ? 'a valid' : 'not a valid'
-          } Scrabble word!`,
-        });
-        const newWord = this.generateWord(state.guessingWord.length);
-        this.scrabbleData.updateGameState(userId, {
-          status: 'IN PROGRESS',
-          guessingWord: newWord,
-        });
-        responses.push({
-          message: `Is the word "${newWord}" a valid Scrabble word?`,
-          replyKeyboardMarkup: {
-            keyboard: [['/SCRABBLE GUESS YES'], ['/SCRABBLE GUESS NO']],
-            one_time_keyboard: true,
-          },
-        });
-      }
+    } else if (scrabbleCommand.subCommand === 'STOP') {
+      this.scrabbleData.updateGameState(chatId, { status: 'STOPPED' });
+      TelegramService.sendMessage({
+        chatId,
+        markdown: new MarkdownBuilder(constants.MSG_GAME_STOPPED),
+      });
+    } else if (scrabbleCommand.subCommand === 'GUESS') {
+      this.handleGuess(chatId, state, scrabbleCommand.guess);
+    }
+  }
+
+  private handleGuess(chatId: number, gameState: GameState, guess: boolean) {
+    if (gameState.status === 'STOPPED') {
+      TelegramService.sendMessage({
+        chatId,
+        markdown: new MarkdownBuilder(
+          `${constants.MSG_GAME_NOT_IN_PROGRESS}\n${constants.HELP_START}`,
+        ),
+      });
+      return;
     }
 
-    responses.forEach(({ message, replyKeyboardMarkup }) => {
-      TelegramService.sendMessage({
-        chatId: userId,
-        markdown: new MarkdownBuilder(message),
-        replyKeyboardMarkup,
-      });
+    const word = gameState.guessingWord;
+    const isValidWord = this.checkIsValidWord(word);
+    const isCorrectGuess = isValidWord === guess;
+
+    const responseMessage = `${isCorrectGuess ? '✅ ' : '❌'} That's ${
+      isCorrectGuess ? 'correct' : 'incorrect'
+    }! You guessed ${guess} and the word "${word}" is ${
+      isValidWord ? 'a valid' : 'not a valid'
+    } Scrabble word!`;
+
+    TelegramService.sendMessage({
+      chatId,
+      markdown: new MarkdownBuilder(responseMessage),
+    });
+
+    const newWord = this.generateWord(word.length);
+    this.scrabbleData.updateGameState(chatId, {
+      status: 'IN PROGRESS',
+      guessingWord: newWord,
+    });
+
+    TelegramService.sendMessage({
+      chatId,
+      markdown: new MarkdownBuilder(
+        `Is the word "${newWord}" a valid Scrabble word?`,
+      ),
+      replyMarkup: {
+        inline_keyboard: [
+          [
+            { text: 'Yes', callback_data: 'SCRABBLE GUESS YES' },
+            { text: 'No', callback_data: 'SCRABBLE GUESS NO' },
+          ],
+        ],
+      },
     });
   }
 
-  private parseCommand(rawCommand: string): ScrabbleCommand {
-    const command = new Command(rawCommand);
-
+  private parseScrabbleCommand(command: Command): ScrabbleCommand {
     const subCommand = command.positionalArgs[0]?.toUpperCase();
     if (!subCommand) {
       return {
         isValid: false,
-        message: `${constants.MSG_MISSING_COMMAND}\n${constants.HELP_START}`,
+        message: `${constants.MSG_MISSING_COMMAND}\n\n${this.help()}`,
       };
     }
 

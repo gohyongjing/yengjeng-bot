@@ -1,14 +1,13 @@
-import { MockLogger } from '@core/googleAppsScript';
-import { ScrabbleService } from './scrabble.service';
-import { Update } from '@core/telegram';
-import { Builder } from '@core/util/builder';
 import {
-  MockMessage,
   MockChat,
   MockTelegramUrlFetchApp,
+  MockUser,
   sendMessage,
 } from '@core/telegram/telegram.mock';
+import { ScrabbleService } from './scrabble.service';
+import { MockLogger } from '@core/googleAppsScript';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
+import { Command } from '@core/util/command';
 
 describe('ScrabbleService', () => {
   let underTest: ScrabbleService;
@@ -34,117 +33,31 @@ describe('ScrabbleService', () => {
     });
   });
 
-  describe('processUpdate', () => {
-    describe('valid message update', () => {
-      it('should process message with text', () => {
-        const update = {
-          update_id: 1,
-          message: new Builder(MockMessage)
-            .with({ text: 'scrabble start 2' })
-            .build(),
-        } as Update;
-
-        underTest.processUpdate(update);
-
-        expect(sendMessage).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('reply keyboard functionality', () => {
-    it('should send reply keyboard when starting game', () => {
-      const message = new Builder(MockMessage)
-        .with({
-          text: 'scrabble start 2',
-          chat: MockChat,
-        })
-        .build();
-
-      underTest.processMessage(message);
-
-      const callArgs = sendMessage.mock.calls[0][0];
-      expect(callArgs).toContain('reply_markup');
-      expect(callArgs).toContain('keyboard');
-      expect(callArgs).toContain(encodeURIComponent('SCRABBLE GUESS YES'));
-      expect(callArgs).toContain(encodeURIComponent('SCRABBLE GUESS NO'));
-    });
-
-    it('should send reply keyboard after each guess', () => {
-      const startMessage = new Builder(MockMessage)
-        .with({
-          text: 'scrabble start 2',
-          chat: MockChat,
-        })
-        .build();
-      underTest.processMessage(startMessage);
-      jest.clearAllMocks();
-
-      const guessMessage = new Builder(MockMessage)
-        .with({
-          text: 'scrabble guess yes',
-          chat: MockChat,
-        })
-        .build();
-
-      underTest.processMessage(guessMessage);
-
-      const secondCallArgs = sendMessage.mock.calls[1][0];
-      expect(secondCallArgs).toContain('reply_markup');
-      expect(secondCallArgs).toContain('keyboard');
-      expect(secondCallArgs).toContain(
-        encodeURIComponent('SCRABBLE GUESS YES'),
-      );
-      expect(secondCallArgs).toContain(encodeURIComponent('SCRABBLE GUESS NO'));
-    });
-  });
-
-  describe('processMessage', () => {
-    it('should call sendMessage when processing a valid command', () => {
-      const message = new Builder(MockMessage)
-        .with({
-          text: 'scrabble start 2',
-          chat: MockChat,
-        })
-        .build();
-
-      underTest.processMessage(message);
-
-      expect(sendMessage).toHaveBeenCalled();
-    });
-
+  describe('processCommand', () => {
     describe('START command', () => {
       describe('valid length', () => {
         it('should start game with valid word length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start 2',
-              chat: MockChat,
-            })
-            .build();
+          const command = new Command('scrabble start 2');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
-          underTest.processMessage(message);
+          const actualUrl = sendMessage.mock.calls[0][0];
 
           expect(
-            sendMessage.mock.calls[0][0].includes(
-              encodeURIComponent('Is the word'),
-            ),
+            actualUrl.includes(encodeURIComponent('Is the word')),
           ).toBeTruthy();
           expect(
-            sendMessage.mock.calls[0][0].includes(
-              encodeURIComponent('a valid Scrabble word'),
-            ),
+            actualUrl.includes(encodeURIComponent('a valid Scrabble word')),
           ).toBeTruthy();
+          expect(actualUrl.includes(encodeURIComponent('?'))).toBeTruthy();
+
+          expect(actualUrl.includes('Yes')).toBeTruthy();
+          expect(actualUrl.includes('No')).toBeTruthy();
+          expect(actualUrl.includes('inline_keyboard')).toBeTruthy();
         });
 
         it('should generate word of correct length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start 2',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble start 2');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           const callArgs = sendMessage.mock.calls[0][0];
           const encodedText = callArgs.split('text=')[1].split('&')[0];
@@ -159,14 +72,8 @@ describe('ScrabbleService', () => {
 
       describe('invalid length', () => {
         it('should return error for missing length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble start');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -176,14 +83,8 @@ describe('ScrabbleService', () => {
         });
 
         it('should return error for non-numeric length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start abc',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble start abc');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -193,14 +94,8 @@ describe('ScrabbleService', () => {
         });
 
         it('should return error for zero length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start 0',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble start 0');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -209,15 +104,9 @@ describe('ScrabbleService', () => {
           ).toBeTruthy();
         });
 
-        it('should return error for negative length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start -1',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+        it('should return error for negative length intepreted as keyword argument', () => {
+          const command = new Command('scrabble start -1'); //TODO: Perhaps make the error message more user friendly
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -226,15 +115,20 @@ describe('ScrabbleService', () => {
           ).toBeTruthy();
         });
 
-        it('should return error for unimplemented length', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start 3',
-              chat: MockChat,
-            })
-            .build();
+        it('should return error for negative length as string', () => {
+          const command = new Command('scrabble start "-1"');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
-          underTest.processMessage(message);
+          expect(
+            sendMessage.mock.calls[0][0].includes(
+              encodeURIComponent('Invalid wordlength'),
+            ),
+          ).toBeTruthy();
+        });
+
+        it('should return error for unimplemented length', () => {
+          const command = new Command('scrabble start 3');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -248,100 +142,83 @@ describe('ScrabbleService', () => {
     describe('GUESS command', () => {
       describe('valid guess', () => {
         it('should handle YES guess correctly', () => {
-          const startMessage = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start 2',
-              chat: MockChat,
-            })
-            .build();
-          underTest.processMessage(startMessage);
-          jest.clearAllMocks();
+          const startCommand = new Command('scrabble start 2');
+          underTest.processCommand(startCommand, MockUser, MockChat.id);
 
-          const guessMessage = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess yes',
-              chat: MockChat,
-            })
-            .build();
+          const guessCommand = new Command('scrabble guess yes');
+          underTest.processCommand(guessCommand, MockUser, MockChat.id);
 
-          underTest.processMessage(guessMessage);
+          const actualUrl = sendMessage.mock.calls[1][0];
 
           expect(
-            sendMessage.mock.calls[0][0].includes(encodeURIComponent('✅')) ||
-              sendMessage.mock.calls[0][0].includes(encodeURIComponent('❌')),
+            actualUrl.includes(encodeURIComponent('correct')) ||
+              actualUrl.includes(encodeURIComponent('incorrect')),
+          ).toBeTruthy();
+          expect(
+            actualUrl.includes(encodeURIComponent('You guessed true')),
+          ).toBeTruthy();
+          expect(
+            actualUrl.includes(encodeURIComponent('is a valid')) ||
+              actualUrl.includes(encodeURIComponent('not a valid')),
           ).toBeTruthy();
         });
 
         it('should handle NO guess correctly', () => {
-          const startMessage = new Builder(MockMessage)
-            .with({
-              text: 'scrabble start 2',
-              chat: MockChat,
-            })
-            .build();
-          underTest.processMessage(startMessage);
+          const startCommand = new Command('scrabble start 2');
+          underTest.processCommand(startCommand, MockUser, MockChat.id);
           jest.clearAllMocks();
 
-          const guessMessage = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess no',
-              chat: MockChat,
-            })
-            .build();
+          const guessCommand = new Command('scrabble guess no');
+          underTest.processCommand(guessCommand, MockUser, MockChat.id);
 
-          underTest.processMessage(guessMessage);
+          const actualUrl = sendMessage.mock.calls[0][0];
 
           expect(
-            sendMessage.mock.calls[0][0].includes(encodeURIComponent('✅')) ||
-              sendMessage.mock.calls[0][0].includes(encodeURIComponent('❌')),
+            actualUrl.includes(encodeURIComponent('correct')) ||
+              actualUrl.includes(encodeURIComponent('incorrect')),
+          ).toBeTruthy();
+          expect(
+            actualUrl.includes(encodeURIComponent('You guessed false')),
+          ).toBeTruthy();
+          expect(
+            actualUrl.includes(encodeURIComponent('is a valid')) ||
+              actualUrl.includes(encodeURIComponent('not a valid')),
           ).toBeTruthy();
         });
 
         it('should handle alternative YES formats', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess Y',
-              chat: MockChat,
-            })
-            .build();
+          const startCommand = new Command('scrabble start 2');
+          underTest.processCommand(startCommand, MockUser, MockChat.id);
 
-          underTest.processMessage(message);
+          const guessCommand = new Command('scrabble guess Y');
+          underTest.processCommand(guessCommand, MockUser, MockChat.id);
+
+          const actualUrl = sendMessage.mock.calls[1][0];
 
           expect(
-            sendMessage.mock.calls[0][0].includes(
-              encodeURIComponent('Game is not in progress'),
-            ),
+            actualUrl.includes(encodeURIComponent('You guessed true')),
           ).toBeTruthy();
         });
 
         it('should handle alternative NO formats', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess N',
-              chat: MockChat,
-            })
-            .build();
+          const startCommand = new Command('scrabble start 2');
+          underTest.processCommand(startCommand, MockUser, MockChat.id);
 
-          underTest.processMessage(message);
+          const guessCommand = new Command('scrabble guess N');
+          underTest.processCommand(guessCommand, MockUser, MockChat.id);
+
+          const actualUrl = sendMessage.mock.calls[1][0];
 
           expect(
-            sendMessage.mock.calls[0][0].includes(
-              encodeURIComponent('Game is not in progress'),
-            ),
+            actualUrl.includes(encodeURIComponent('You guessed false')),
           ).toBeTruthy();
         });
       });
 
       describe('invalid guess', () => {
         it('should return error for missing guess', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble guess');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -351,14 +228,8 @@ describe('ScrabbleService', () => {
         });
 
         it('should return error for invalid guess value', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess maybe',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble guess maybe');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -370,14 +241,8 @@ describe('ScrabbleService', () => {
 
       describe('game not in progress', () => {
         it('should return error when guessing without active game', () => {
-          const message = new Builder(MockMessage)
-            .with({
-              text: 'scrabble guess yes',
-              chat: MockChat,
-            })
-            .build();
-
-          underTest.processMessage(message);
+          const command = new Command('scrabble guess yes');
+          underTest.processCommand(command, MockUser, MockChat.id);
 
           expect(
             sendMessage.mock.calls[0][0].includes(
@@ -390,18 +255,24 @@ describe('ScrabbleService', () => {
 
     describe('STOP command', () => {
       it('should stop the game', () => {
-        const message = new Builder(MockMessage)
-          .with({
-            text: 'scrabble stop',
-            chat: MockChat,
-          })
-          .build();
+        const startCommand = new Command('scrabble start 2');
+        underTest.processCommand(startCommand, MockUser, MockChat.id);
 
-        underTest.processMessage(message);
+        const stopCommand = new Command('scrabble stop');
+        underTest.processCommand(stopCommand, MockUser, MockChat.id);
 
         expect(
-          sendMessage.mock.calls[0][0].includes(
+          sendMessage.mock.calls[1][0].includes(
             encodeURIComponent('Game stopped'),
+          ),
+        ).toBeTruthy();
+
+        const guessCommand = new Command('scrabble guess yes');
+        underTest.processCommand(guessCommand, MockUser, MockChat.id);
+
+        expect(
+          sendMessage.mock.calls[2][0].includes(
+            encodeURIComponent('Game is not in progress'),
           ),
         ).toBeTruthy();
       });
@@ -409,14 +280,8 @@ describe('ScrabbleService', () => {
 
     describe('invalid commands', () => {
       it('should return error for missing command', () => {
-        const message = new Builder(MockMessage)
-          .with({
-            text: 'scrabble',
-            chat: MockChat,
-          })
-          .build();
-
-        underTest.processMessage(message);
+        const command = new Command('scrabble');
+        underTest.processCommand(command, MockUser, MockChat.id);
 
         expect(
           sendMessage.mock.calls[0][0].includes(
@@ -426,14 +291,8 @@ describe('ScrabbleService', () => {
       });
 
       it('should return error for invalid subcommand', () => {
-        const message = new Builder(MockMessage)
-          .with({
-            text: 'scrabble invalid',
-            chat: MockChat,
-          })
-          .build();
-
-        underTest.processMessage(message);
+        const command = new Command('scrabble invalid');
+        underTest.processCommand(command, MockUser, MockChat.id);
 
         expect(
           sendMessage.mock.calls[0][0].includes(

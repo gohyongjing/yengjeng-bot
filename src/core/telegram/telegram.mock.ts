@@ -1,17 +1,39 @@
 import { MockHTTPResponse, MockUrlFetchApp } from '@core/googleAppsScript';
 import { Builder } from '@core/util/builder';
-import { Chat, Message, ResponseBody, Update, User } from './telegram.type';
+import {
+  Chat,
+  Message,
+  ResponseBody,
+  Update,
+  User,
+  CallbackQuery,
+} from './telegram.type';
 
 export const MockChat: Chat = {
   id: 123,
   type: 'private',
 };
 
+export const MockUser: User = {
+  id: 123,
+  first_name: 'TestUser',
+  is_bot: false,
+};
+
 export const MockMessage: Message = {
   message_id: 0,
   date: 1,
   chat: MockChat,
+  from: MockUser,
   text: 'Hello World!',
+};
+
+export const MockCallbackQuery: CallbackQuery = {
+  id: '123',
+  from: MockUser,
+  data: 'test_callback_data',
+  chat_instance: 'test-instance',
+  message: MockMessage,
 };
 
 export const MockUpdate: Update = {

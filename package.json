@@ -18,6 +18,7 @@
     "deploy": "npm run check:all && npm run build && npm run push",
     "deploy:dev": "bash ./scripts/deploy-dev.sh",
     "deploy:prod": "bash ./scripts/deploy-prod.sh",
+    "fix:all": "npm run lint:fix-all && npm run format:fix-all && npm run types:check-all && npm run test:cov",
     "format:check-all": "npm run format:check-file -- .",
     "format:check-file": "prettier --check",
     "format:fix-all": "npm run format:fix-file -- .",

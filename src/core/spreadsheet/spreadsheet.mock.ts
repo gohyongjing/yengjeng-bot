@@ -50,10 +50,13 @@ export const createMockSpreadsheetApp = () => {
           .with({
             findNext: () => {
               for (let i = 0; i < data.length; i++) {
-                // Google sheets use non strict equality check
-                // eslint-disable-next-line eqeqeq
-                if (data[i][searchColumn - 1] == searchValue) {
-                  return createMockFoundCell(i);
+                const row = data[i];
+                if (row && row.length >= searchColumn) {
+                  // Google sheets use non strict equality check
+                  // eslint-disable-next-line eqeqeq
+                  if (row[searchColumn - 1] == searchValue) {
+                    return createMockFoundCell(i);
+                  }
                 }
               }
               return null;

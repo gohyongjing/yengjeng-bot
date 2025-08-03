@@ -1,33 +1,38 @@
 import { AppService } from '@core/appService';
-import { LoggerService } from '@core/logger';
-import { Message, TelegramService, Update } from '@core/telegram';
+import { TelegramService, User, Message } from '@core/telegram';
 import { Command } from '@core/util/command';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
-import { hasKey } from '@core/util/predicates';
 
 export class HelpService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'help';
 
-  loggerService: LoggerService;
   services: AppService[];
 
   constructor(services: AppService[]) {
     super();
-    this.loggerService = new LoggerService();
     this.services = services;
   }
 
-  override async processUpdate(update: Update): Promise<void> {
-    if (hasKey(update, 'message')) {
-      const command = new Command(update.message.text ?? '');
+  override help(): string {
+    return '*HELP*\nHELP: Provides instructions to use features provided';
+  }
 
-      if (command.isCommand(this.APP_SERVICE_COMMAND_WORD)) {
-        this.processMessage(update.message);
+  override processMessage(message: Message): void {
+    const text = message.text ?? '';
+    const command = new Command(text);
+
+    if (command.isCommand(this.APP_SERVICE_COMMAND_WORD)) {
+      const user = message.from;
+      if (!user) {
+        this.loggerService.warn(
+          `Command's user not specified for ${this.APP_SERVICE_COMMAND_WORD} service`,
+        );
         return;
       }
-
+      this.processCommand(command, user, message.chat.id);
+    } else {
       TelegramService.sendMessage({
-        chatId: update.message.chat.id,
+        chatId: message.chat.id,
         markdown: new MarkdownBuilder(
           "Sorry... I don't understand what you just said :(\nPlease type HELP for more information",
         ),
@@ -35,15 +40,10 @@ export class HelpService extends AppService {
     }
   }
 
-  override help(): string {
-    return '*HELP*\nHELP: Provides instructions to use features provided';
-  }
-
-  processMessage(message: Message) {
+  override processCommand(command: Command, from: User, chatId: number): void {
     const helpMessages = [this.help()].concat(
       this.services.map((service) => service.help()),
     );
-    const chatId = message.chat.id;
     TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder(helpMessages.join('\n')),
