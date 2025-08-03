@@ -48,6 +48,22 @@ export class ScrabbleService extends AppService {
     const command = this.parseCommand(text);
     this.loggerService.info(`Received command: ${JSON.stringify(command)}`);
 
+    this.processCommand(command, userId);
+  }
+
+  processCallbackQuery(callbackQuery: CallbackQuery) {
+    const userId = callbackQuery.from.id;
+    const data = callbackQuery.data;
+
+    if (!data || !data.startsWith('SCRABBLE GUESS ')) {
+      this.loggerService.info(`Invalid callback query data: ${data}`);
+      return;
+    }
+    const command = this.parseCommand(data);
+    this.processCommand(command, userId);
+  }
+
+  private processCommand(command: ScrabbleCommand, userId: number) {
     if (!command.isValid) {
       TelegramService.sendMessage({
         chatId: userId,
@@ -88,21 +104,6 @@ export class ScrabbleService extends AppService {
     }
   }
 
-  processCallbackQuery(callbackQuery: CallbackQuery) {
-    const userId = callbackQuery.from.id;
-    const data = callbackQuery.data;
-
-    if (!data || !data.startsWith('SCRABBLE GUESS ')) {
-      this.loggerService.info(`Invalid callback query data: ${data}`);
-      return;
-    }
-
-    const guess = data === 'SCRABBLE GUESS YES';
-    const state = this.scrabbleData.readGameState(userId);
-
-    this.handleGuess(userId, state, guess);
-  }
-
   private handleGuess(userId: number, gameState: GameState, guess: boolean) {
     if (gameState.status === 'STOPPED') {
       TelegramService.sendMessage({
@@ -120,7 +121,7 @@ export class ScrabbleService extends AppService {
 
     const responseMessage = `${isCorrectGuess ? '✅ ' : '❌'} That's ${
       isCorrectGuess ? 'correct' : 'incorrect'
-    }! You guessed ${guess} but the word "${word}" is ${
+    }! You guessed ${guess} and the word "${word}" is ${
       isValidWord ? 'a valid' : 'not a valid'
     } Scrabble word!`;
 

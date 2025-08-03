@@ -36,7 +36,10 @@ export class GreetingService extends AppService {
             { text: '🚌 Bus Timings', callback_data: '/bus' },
             { text: '🎲 Scrabble Game', callback_data: '/scrabble' },
           ],
-          [{ text: '❓ Help', callback_data: '/help' }],
+          [
+            { text: '❓ Help', callback_data: '/help' },
+            { text: '🆕 Version', callback_data: '/version' },
+          ],
         ],
       },
     });

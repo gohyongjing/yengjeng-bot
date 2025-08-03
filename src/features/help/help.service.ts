@@ -1,6 +1,11 @@
 import { AppService } from '@core/appService';
 import { LoggerService } from '@core/logger';
-import { Message, TelegramService, Update } from '@core/telegram';
+import {
+  Message,
+  TelegramService,
+  Update,
+  CallbackQuery,
+} from '@core/telegram';
 import { Command } from '@core/util/command';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { hasKey } from '@core/util/predicates';
@@ -32,6 +37,8 @@ export class HelpService extends AppService {
           "Sorry... I don't understand what you just said :(\nPlease type HELP for more information",
         ),
       });
+    } else if (hasKey(update, 'callback_query')) {
+      this.processCallbackQuery(update.callback_query);
     }
   }
 
@@ -40,13 +47,30 @@ export class HelpService extends AppService {
   }
 
   processMessage(message: Message) {
-    const helpMessages = [this.help()].concat(
-      this.services.map((service) => service.help()),
-    );
-    const chatId = message.chat.id;
-    TelegramService.sendMessage({
-      chatId,
-      markdown: new MarkdownBuilder(helpMessages.join('\n')),
-    });
+    const command = new Command(message.text ?? '');
+    this.processCommand(command, message.chat.id);
+  }
+
+  processCallbackQuery(callbackQuery: CallbackQuery) {
+    const data = callbackQuery.data;
+    if (!data) {
+      this.loggerService.info(`Invalid callback query data: ${data}`);
+      return;
+    }
+
+    const command = new Command(data);
+    this.processCommand(command, callbackQuery.from.id);
+  }
+
+  private processCommand(command: Command, chatId: number) {
+    if (command.isCommand(this.APP_SERVICE_COMMAND_WORD)) {
+      const helpMessages = [this.help()].concat(
+        this.services.map((service) => service.help()),
+      );
+      TelegramService.sendMessage({
+        chatId,
+        markdown: new MarkdownBuilder(helpMessages.join('\n')),
+      });
+    }
   }
 }
