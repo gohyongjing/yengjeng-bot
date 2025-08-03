@@ -1,5 +1,10 @@
 import { ConfigService } from '@core/config';
-import { Message, TelegramService, Update } from '@core/telegram';
+import {
+  CallbackQuery,
+  Message,
+  TelegramService,
+  Update,
+} from '@core/telegram';
 import { BusConfig } from './bus.config';
 import {
   BusArrivalResponse,
@@ -39,6 +44,8 @@ export class BusService extends AppService {
   async processUpdate(update: Update) {
     if (hasKey(update, 'message')) {
       this.processMessage(update.message);
+    } else if (hasKey(update, 'callback_query')) {
+      this.processCallbackQuery(update.callback_query);
     }
   }
 
@@ -52,17 +59,38 @@ export class BusService extends AppService {
 
   processMessage(message: Message) {
     const chatId = message.chat.id;
+    const text = message.text ?? '';
+    const command = new Command(text);
+    this.processCommand(command, chatId, message.from?.first_name);
+  }
+
+  processCallbackQuery(callbackQuery: CallbackQuery) {
+    const data = callbackQuery.data;
+    if (!data) {
+      this.loggerService.info(`Invalid callback query data: ${data}`);
+      return;
+    }
+    const command = new Command(data);
+    this.processCommand(
+      command,
+      callbackQuery.from.id,
+      callbackQuery.from.first_name,
+    );
+  }
+
+  private processCommand(
+    command: Command,
+    chatId: number,
+    firstName: string | undefined,
+  ) {
     TelegramService.sendMessage({
       chatId,
       markdown: new MarkdownBuilder('Gimme a sec, getting the bus timings'),
     });
 
-    const text = message.text ?? '';
-    const command = new Command(text);
-
     const busStopId =
       command.positionalArgs[0] ??
-      this.busData.readLastBusStopQuery(message.chat.id) ??
+      this.busData.readLastBusStopQuery(chatId) ??
       '04167';
     let response = new MarkdownBuilder(constants.MSG_INVALID_BUS_CODE);
 
@@ -76,12 +104,18 @@ export class BusService extends AppService {
       );
     }
 
-    TelegramService.sendMessage({ chatId, markdown: response });
+    TelegramService.sendMessage({
+      chatId,
+      markdown: response,
+      replyMarkup: {
+        inline_keyboard: [[{ text: '🔄 Refresh', callback_data: '/bus' }]],
+      },
+    });
 
     if (command.positionalArgs[0] !== undefined && isValidBusStopId) {
       this.busData.updateLastBusStopQuery(
-        message.chat.id,
-        message.from?.first_name ?? 'Unknown',
+        chatId,
+        firstName ?? 'Unknown',
         busStopId,
       );
     }

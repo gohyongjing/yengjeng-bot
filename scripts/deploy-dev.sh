@@ -2,9 +2,7 @@
 
 set -e
 
-npm run lint:fix-all
-npm run format:fix-all
-npm run check:all
+npm run fix:all
 npm run build
 clasp setting scriptId 1Fllmu_r4E62F6eNmyVMxJl02w73idMPkPwVzykwZfoFvorpOKAJprUWU
 clasp push

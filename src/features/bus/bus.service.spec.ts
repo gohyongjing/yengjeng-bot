@@ -20,6 +20,7 @@ import {
   sendMessage,
 } from '@core/telegram/telegram.mock';
 import { BusServiceDetails } from './bus.type';
+import { Command } from '@core/util/command';
 
 describe('BusService', () => {
   let underTest: BusService;
@@ -170,12 +171,11 @@ describe('BusService', () => {
     });
   });
 
-  describe('processMessage', () => {
+  describe('processCommand', () => {
     describe('valid bus stop code', () => {
       it('should return the bus arrival details', () => {
-        underTest.processMessage(
-          new Builder(MockMessage).with({ text: 'bus 83139' }).build(),
-        );
+        const command = new Command('bus 83139');
+        underTest['processCommand'](command, 123456, 'TestUser');
 
         expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
         expect(sendMessage.mock.calls[1][0].includes('15')).toBeTruthy();
@@ -191,9 +191,8 @@ describe('BusService', () => {
 
     describe('no bus services available', () => {
       it('should return no buses found message', () => {
-        underTest.processMessage(
-          new Builder(MockMessage).with({ text: 'bus 123' }).build(),
-        );
+        const command = new Command('bus 123');
+        underTest['processCommand'](command, 123456, 'TestUser');
 
         expect(
           sendMessage.mock.calls[1][0].includes(
@@ -210,9 +209,8 @@ describe('BusService', () => {
 
     describe('invalid bus stop code', () => {
       it('should return invalid bus code message', () => {
-        underTest.processMessage(
-          new Builder(MockMessage).with({ text: 'bus abc' }).build(),
-        );
+        const command = new Command('bus abc');
+        underTest['processCommand'](command, 123456, 'TestUser');
 
         expect(
           sendMessage.mock.calls[1][0].includes(
@@ -225,6 +223,31 @@ describe('BusService', () => {
           ),
         ).toBeTruthy();
       });
+    });
+  });
+
+  describe('processMessage', () => {
+    it('should process message and call processCommand', () => {
+      const message = new Builder(MockMessage)
+        .with({ text: 'bus 83139' })
+        .build();
+      underTest.processMessage(message);
+
+      expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
+    });
+  });
+
+  describe('processCallbackQuery', () => {
+    it('should process callback query and call processCommand', () => {
+      const callbackQuery = {
+        id: 'test-callback-id',
+        from: { id: 123456, first_name: 'TestUser', is_bot: false },
+        chat_instance: 'test-chat-instance',
+        data: '/bus 83139',
+      };
+      underTest.processCallbackQuery(callbackQuery);
+
+      expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
     });
   });
 });

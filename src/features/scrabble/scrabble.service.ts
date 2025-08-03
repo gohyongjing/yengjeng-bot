@@ -158,7 +158,7 @@ export class ScrabbleService extends AppService {
     if (!subCommand) {
       return {
         isValid: false,
-        message: `${constants.MSG_MISSING_COMMAND}\n${constants.HELP_START}`,
+        message: `${constants.MSG_MISSING_COMMAND}\n\n${this.help()}`,
       };
     }
 

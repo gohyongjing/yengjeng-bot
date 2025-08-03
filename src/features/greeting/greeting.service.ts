@@ -25,10 +25,20 @@ export class GreetingService extends AppService {
 
     const responseText = `Hello ${
       chat.first_name ?? ''
-    }! This is Yeng Jeng Bot!`;
+    }! This is Yeng Jeng Bot!\n\nWhat would you like to do?`;
+
     TelegramService.sendMessage({
       chatId: chat.id,
       markdown: new MarkdownBuilder(responseText),
+      replyMarkup: {
+        inline_keyboard: [
+          [
+            { text: '🚌 Bus Timings', callback_data: '/bus' },
+            { text: '🎲 Scrabble Game', callback_data: '/scrabble' },
+          ],
+          [{ text: '❓ Help', callback_data: '/help' }],
+        ],
+      },
     });
   }
 }
