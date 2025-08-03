@@ -11,8 +11,6 @@ import { constants } from './bus.constants';
 import { Builder } from '@core/util/builder';
 import {
   canParseMarkdownV2,
-  MockMessage,
-  MockCallbackQuery,
   MockTelegramUrlFetchApp,
   sendMessage,
   MockUser,
@@ -176,10 +174,27 @@ describe('BusService', () => {
         const command = new Command('bus 83139');
         underTest['processCommand'](command, MockUser, 123456);
 
+        expect(
+          sendMessage.mock.calls[0][0].includes(
+            encodeURIComponent('Gimme a sec'),
+          ),
+        ).toBeTruthy();
+        expect(
+          sendMessage.mock.calls[0][0].includes(
+            encodeURIComponent('getting the bus timings'),
+          ),
+        ).toBeTruthy();
+
         expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
         expect(sendMessage.mock.calls[1][0].includes('15')).toBeTruthy();
         expect(sendMessage.mock.calls[1][0].includes('150')).toBeTruthy();
         expect(sendMessage.mock.calls[1][0].includes('155')).toBeTruthy();
+
+        expect(sendMessage.mock.calls[1][0].includes('Refresh')).toBeTruthy();
+        expect(
+          sendMessage.mock.calls[1][0].includes('inline_keyboard'),
+        ).toBeTruthy();
+
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -194,10 +209,27 @@ describe('BusService', () => {
         underTest['processCommand'](command, MockUser, 123456);
 
         expect(
+          sendMessage.mock.calls[0][0].includes(
+            encodeURIComponent('Gimme a sec'),
+          ),
+        ).toBeTruthy();
+        expect(
+          sendMessage.mock.calls[0][0].includes(
+            encodeURIComponent('getting the bus timings'),
+          ),
+        ).toBeTruthy();
+
+        expect(
           sendMessage.mock.calls[1][0].includes(
             encodeURIComponent(constants.MSG_NO_BUSES),
           ),
         ).toBeTruthy();
+
+        expect(sendMessage.mock.calls[1][0].includes('Refresh')).toBeTruthy();
+        expect(
+          sendMessage.mock.calls[1][0].includes('inline_keyboard'),
+        ).toBeTruthy();
+
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -212,38 +244,33 @@ describe('BusService', () => {
         underTest['processCommand'](command, MockUser, 123456);
 
         expect(
+          sendMessage.mock.calls[0][0].includes(
+            encodeURIComponent('Gimme a sec'),
+          ),
+        ).toBeTruthy();
+        expect(
+          sendMessage.mock.calls[0][0].includes(
+            encodeURIComponent('getting the bus timings'),
+          ),
+        ).toBeTruthy();
+
+        expect(
           sendMessage.mock.calls[1][0].includes(
             encodeURIComponent(constants.MSG_INVALID_BUS_CODE),
           ),
         ).toBeTruthy();
+
+        expect(sendMessage.mock.calls[1][0].includes('Refresh')).toBeTruthy();
+        expect(
+          sendMessage.mock.calls[1][0].includes('inline_keyboard'),
+        ).toBeTruthy();
+
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
           ),
         ).toBeTruthy();
       });
-    });
-  });
-
-  describe('processMessage', () => {
-    it('should process message and call processCommand', () => {
-      const message = new Builder(MockMessage)
-        .with({ text: 'bus 83139' })
-        .build();
-      underTest.processMessage(message);
-
-      expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
-    });
-  });
-
-  describe('processCallbackQuery', () => {
-    it('should process callback query and call processCommand', () => {
-      const callbackQuery = new Builder(MockCallbackQuery)
-        .with({ data: '/bus 83139' })
-        .build();
-      underTest.processCallbackQuery(callbackQuery);
-
-      expect(sendMessage.mock.calls[1][0].includes('83139')).toBeTruthy();
     });
   });
 });

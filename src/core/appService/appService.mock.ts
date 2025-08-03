@@ -5,6 +5,11 @@ import { User } from '@core/telegram';
 export class MockAppService extends AppService {
   override APP_SERVICE_COMMAND_WORD: string;
   private helpText: string;
+  public processCommandCalls: Array<{
+    command: Command;
+    from: User;
+    chatId: number;
+  }> = [];
 
   constructor(commandWord: string, helpText: string) {
     super();
@@ -16,11 +21,13 @@ export class MockAppService extends AppService {
     return this.helpText;
   }
 
-  override processCommand(
-    _command: Command,
-    _from: User,
-    _chatId: number,
-  ): void {}
+  override processCommand(command: Command, from: User, chatId: number): void {
+    this.processCommandCalls.push({ command, from, chatId });
+  }
+
+  clearProcessCommandCalls(): void {
+    this.processCommandCalls = [];
+  }
 }
 
 export const createMockAppService = (

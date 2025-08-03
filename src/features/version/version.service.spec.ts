@@ -1,11 +1,11 @@
 import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { VersionService } from './version.service';
 import {
-  MockMessage,
   MockTelegramUrlFetchApp,
+  MockUser,
   sendMessage,
 } from '@core/telegram/telegram.mock';
-import { Builder } from '@core/util/builder';
+import { Command } from '@core/util/command';
 
 describe('VersionService', () => {
   let underTest: VersionService;
@@ -20,19 +20,16 @@ describe('VersionService', () => {
     underTest = new VersionService();
   });
 
-  describe('processUpdate', () => {
+  describe('processCommand', () => {
     it('should return version number', () => {
-      const input_update = {
-        update_id: 1,
-        message: new Builder(MockMessage)
-          .with({
-            text: '/version',
-          })
-          .build(),
-      };
-      underTest.processUpdate(input_update);
+      const command = new Command('/version');
+      underTest.processCommand(command, MockUser, 123456);
 
       const actualUrl = sendMessage.mock.calls[0][0];
+
+      expect(
+        actualUrl.includes(encodeURIComponent('Yeng Jeng Bot')),
+      ).toBeTruthy();
       expect(actualUrl.includes(`v${underTest.major.toString()}`)).toBeTruthy();
       expect(actualUrl.includes(`.${underTest.minor.toString()}`)).toBeTruthy();
       expect(actualUrl.includes(`.${underTest.patch.toString()}`)).toBeTruthy();
