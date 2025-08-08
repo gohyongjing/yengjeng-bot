@@ -5,6 +5,7 @@ import { BusService } from '@features/bus';
 import { GreetingService } from '@features/greeting';
 import { HelpService } from '@features/help';
 import { ScrabbleService } from '@features/scrabble';
+import { UserService } from '@features/user';
 import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { Command } from '@core/util/command';
@@ -16,6 +17,7 @@ export class App {
     new BusService(),
     new GreetingService(),
     new ScrabbleService(),
+    new UserService(),
     new VersionService(),
   ];
   helpService: HelpService = new HelpService(this.services);

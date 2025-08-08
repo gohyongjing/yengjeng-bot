@@ -2,9 +2,16 @@ import { AppService } from '@core/appService';
 import { TelegramService, User } from '@core/telegram';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { Command } from '@core/util/command';
+import { UserService } from '@features/user';
 
 export class GreetingService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'start';
+  private userService: UserService;
+
+  constructor() {
+    super();
+    this.userService = new UserService();
+  }
 
   override help(): string {
     return '*GREETING*\nSTART: Start using Yeng Jeng bot :)';
@@ -25,11 +32,14 @@ export class GreetingService extends AppService {
             { text: '🎲 Scrabble Game', callback_data: '/scrabble' },
           ],
           [
+            { text: '👤 My Profile', callback_data: '/user' },
             { text: '❓ Help', callback_data: '/help' },
-            { text: '🆕 Version', callback_data: '/version' },
           ],
+          [{ text: '🆕 Version', callback_data: '/version' }],
         ],
       },
     });
+
+    this.userService.updateProfile(from);
   }
 }
