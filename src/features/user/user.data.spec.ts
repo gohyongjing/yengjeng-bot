@@ -1,11 +1,11 @@
 import { MockLogger } from '@core/googleAppsScript';
-import { UserDataService } from './user.data';
+import { UserData } from './user.data';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { MockUserDataA, MockUserDataB } from './user.mock';
 import { UserUpdate } from './user.type';
 
 describe('UserDataService', () => {
-  let underTest: UserDataService;
+  let underTest: UserData;
 
   beforeAll(() => {
     global.Logger = MockLogger;
@@ -13,7 +13,7 @@ describe('UserDataService', () => {
 
   beforeEach(() => {
     global.SpreadsheetApp = createMockSpreadsheetApp();
-    underTest = new UserDataService();
+    underTest = new UserData();
     jest.clearAllMocks();
   });
 
@@ -71,7 +71,7 @@ describe('UserDataService', () => {
     });
   });
 
-  function createUser(underTest: UserDataService, user: UserUpdate) {
+  function createUser(underTest: UserData, user: UserUpdate) {
     const result = underTest.updateUser(user);
     expect(result).not.toBeNull();
     expect(result?.userId).toBe(user.userId);

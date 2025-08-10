@@ -2,6 +2,7 @@ import { LoggerService } from '@core/logger';
 import { TelegramService, Update } from '@core/telegram';
 import { hasKey } from '@core/util/predicates';
 import { BusService } from '@features/bus';
+import { FriendService } from '@features/friend';
 import { GreetingService } from '@features/greeting';
 import { HelpService } from '@features/help';
 import { ScrabbleService } from '@features/scrabble';
@@ -15,6 +16,7 @@ export class App {
   telegramService: TelegramService = new TelegramService();
   services: AppService[] = [
     new BusService(),
+    new FriendService(),
     new GreetingService(),
     new ScrabbleService(),
     new UserService(),

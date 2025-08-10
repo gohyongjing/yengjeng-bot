@@ -1,24 +1,28 @@
 import { AppService } from '@core/appService';
-import { TelegramService, User } from '@core/telegram';
+import { TelegramService, User as TelegramUser } from '@core/telegram';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { Command } from '@core/util/command';
-import { UserDataService } from './user.data';
-import { UserData } from './user.type';
+import { UserData } from './user.data';
+import { User as AppUser } from './user.type';
 
 export class UserService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'user';
-  private userDataService: UserDataService;
+  private userData: UserData;
 
   constructor() {
     super();
-    this.userDataService = new UserDataService();
+    this.userData = new UserData();
   }
 
   override help(): string {
     return '*USER PROFILE*\nUSER PROFILE: View your user profile\nUSER DELETE: Delete your user data';
   }
 
-  override processCommand(command: Command, from: User, chatId: number): void {
+  override processCommand(
+    command: Command,
+    from: TelegramUser,
+    chatId: number,
+  ): void {
     const subCommand = command.positionalArgs[0]?.toUpperCase();
 
     if (!subCommand || subCommand === 'PROFILE') {
@@ -35,7 +39,7 @@ export class UserService extends AppService {
     }
   }
 
-  updateProfile(user: User): UserData | null {
+  updateProfile(user: TelegramUser): AppUser | null {
     const userData = {
       userId: user.id,
       firstName: user.first_name,
@@ -43,11 +47,11 @@ export class UserService extends AppService {
       username: user.username ?? '',
     };
 
-    return this.userDataService.updateUser(userData);
+    return this.userData.updateUser(userData);
   }
 
-  private readProfile(from: User, chatId: number): void {
-    const userData = this.userDataService.getUser(from.id);
+  private readProfile(from: TelegramUser, chatId: number): void {
+    const userData = this.userData.getUser(from.id);
 
     if (!userData) {
       TelegramService.sendMessage({
@@ -77,8 +81,8 @@ export class UserService extends AppService {
     });
   }
 
-  private deleteProfile(from: User, chatId: number): void {
-    const success = this.userDataService.deleteUser(from.id);
+  private deleteProfile(from: TelegramUser, chatId: number): void {
+    const success = this.userData.deleteUser(from.id);
 
     if (success) {
       TelegramService.sendMessage({

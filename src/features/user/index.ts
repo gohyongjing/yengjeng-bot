@@ -1,7 +1,7 @@
 export { UserService } from './user.service';
-export { UserDataService } from './user.data';
-export type { UserData, UserUpdate } from './user.type';
-export { isUserData, isUserUpdate } from './user.predicates';
+export { UserData } from './user.data';
+export type { User, UserUpdate } from './user.type';
+export { isUser as isUserData, isUserUpdate } from './user.predicates';
 export {
   MockUserDataA,
   MockUserDataA as MockUserDataB,

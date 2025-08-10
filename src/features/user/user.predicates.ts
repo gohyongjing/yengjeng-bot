@@ -1,7 +1,7 @@
 import { hasKey, isObject } from '@core/util/predicates';
-import { UserData, UserUpdate } from './user.type';
+import { User, UserUpdate } from './user.type';
 
-export function isUserData(u: unknown): u is UserData {
+export function isUser(u: unknown): u is User {
   return (
     isObject(u) &&
     hasKey(u, 'userId') &&

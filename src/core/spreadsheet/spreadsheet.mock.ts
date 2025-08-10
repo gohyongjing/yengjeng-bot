@@ -61,6 +61,20 @@ export const createMockSpreadsheetApp = () => {
               }
               return null;
             },
+            findAll: () => {
+              const foundCells: GoogleAppsScript.Spreadsheet.Range[] = [];
+              for (let i = 0; i < data.length; i++) {
+                const row = data[i];
+                if (row && row.length >= searchColumn) {
+                  // Google sheets use non strict equality check
+                  // eslint-disable-next-line eqeqeq
+                  if (row[searchColumn - 1] == searchValue) {
+                    foundCells.push(createMockFoundCell(i));
+                  }
+                }
+              }
+              return foundCells;
+            },
           })
           .build();
       };
@@ -96,6 +110,18 @@ export const createMockSpreadsheetApp = () => {
             getColumn: () => colIndex + 1,
             getNumRows: () => numRows,
             getNumColumns: () => numCols,
+            deleteCells: (
+              shiftDimension: GoogleAppsScript.Spreadsheet.Dimension,
+            ) => {
+              if (
+                shiftDimension === GoogleAppsScript.Spreadsheet.Dimension.ROWS
+              ) {
+                if (rowIndex >= 0 && rowIndex < data.length) {
+                  data.splice(rowIndex, numRows);
+                }
+              }
+              return createMockRange(rowIndex, colIndex, numRows, numCols);
+            },
           })
           .build();
       };
