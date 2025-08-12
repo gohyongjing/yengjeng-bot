@@ -17,6 +17,14 @@ export const MockChat: Chat = {
 export const MockUser: User = {
   id: 123,
   first_name: 'TestUser',
+  username: 'testuser',
+  is_bot: false,
+};
+
+export const MockUser2: User = {
+  id: 456,
+  first_name: 'Jane',
+  username: 'janesmith',
   is_bot: false,
 };
 

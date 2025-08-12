@@ -5,7 +5,6 @@ import {
   sendMessage,
 } from '@core/telegram/telegram.mock';
 import { Builder } from '@core/util/builder';
-import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { App } from './app.service';
 
 describe('App', () => {
@@ -13,8 +12,6 @@ describe('App', () => {
     let underTest: App;
 
     beforeAll(() => {
-      global.Logger = MockLogger;
-      global.SpreadsheetApp = MockSpreadsheetApp;
       global.UrlFetchApp = MockTelegramUrlFetchApp;
     });
 

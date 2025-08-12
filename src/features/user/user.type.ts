@@ -13,3 +13,8 @@ export interface UserUpdate {
   lastName: string;
   username: string;
 }
+
+export interface UserQuery {
+  userId?: number;
+  username?: string;
+}

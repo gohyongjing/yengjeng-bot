@@ -12,6 +12,7 @@ export interface FriendRequestUpdate {
 }
 
 export interface Friendship {
+  id: string;
   userId: number;
   friendId: number;
   createdAt: Date;

@@ -1,13 +1,8 @@
 import { FriendRequestData } from './friendRequest.data';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
-import { MockGoogleAppsScript } from '@core/googleAppsScript/googleAppsScript.mock';
 
 describe('FriendRequestData', () => {
   let friendRequestData: FriendRequestData;
-
-  beforeAll(() => {
-    global.GoogleAppsScript = MockGoogleAppsScript;
-  });
 
   beforeEach(() => {
     global.SpreadsheetApp = createMockSpreadsheetApp();

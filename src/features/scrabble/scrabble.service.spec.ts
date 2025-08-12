@@ -5,7 +5,6 @@ import {
   sendMessage,
 } from '@core/telegram/telegram.mock';
 import { ScrabbleService } from './scrabble.service';
-import { MockLogger } from '@core/googleAppsScript';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { Command } from '@core/util/command';
 
@@ -13,7 +12,6 @@ describe('ScrabbleService', () => {
   let underTest: ScrabbleService;
 
   beforeAll(() => {
-    global.Logger = MockLogger;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 

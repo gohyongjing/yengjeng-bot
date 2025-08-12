@@ -50,7 +50,6 @@ export class SpreadsheetService {
     if (foundCell) {
       return sheet.getRange(foundCell.getRow(), 1, 1, sheet.getLastColumn());
     }
-
     return null;
   }
 

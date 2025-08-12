@@ -12,6 +12,7 @@ export class LoggerService {
     const entry = [new Date(), logLevel, details];
     Logger.log(entry);
     this.loggerData.createLogEntry(logLevel, details);
+    console.log(entry); //TODO: Check if this crashes google apps script
   }
 
   debug(details: unknown) {

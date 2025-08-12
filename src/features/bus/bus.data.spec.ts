@@ -1,5 +1,4 @@
 import { BusData } from './bus.data';
-import { MockLogger } from '@core/googleAppsScript';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 
 // jest.mock('@core/config', () => ({
@@ -10,10 +9,6 @@ import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 
 describe('BusData', () => {
   let underTest: BusData;
-
-  beforeAll(() => {
-    global.Logger = MockLogger;
-  });
 
   beforeEach(() => {
     jest.clearAllMocks();

@@ -1,6 +1,4 @@
 import { SpreadsheetService } from './spreadsheet.service';
-import { MockLogger } from '@core/googleAppsScript';
-import { MockGoogleAppsScript } from '@core/googleAppsScript/googleAppsScript.mock';
 import {
   mockSpreadsheetData,
   createMockSpreadsheetApp,
@@ -9,15 +7,10 @@ import {
 describe('SpreadsheetService', () => {
   let underTest: SpreadsheetService;
 
-  beforeAll(() => {
-    global.GoogleAppsScript = MockGoogleAppsScript;
-    global.Logger = MockLogger;
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
     global.SpreadsheetApp = createMockSpreadsheetApp();
-    underTest = new SpreadsheetService('TestSheet');
+    underTest = new SpreadsheetService('DefaultTestSheet');
   });
 
   describe('createRow', () => {

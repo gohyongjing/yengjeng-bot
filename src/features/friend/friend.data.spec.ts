@@ -1,15 +1,10 @@
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { FriendData } from './friend.data';
-import { MockLogger } from '@core/googleAppsScript';
-import { MockGoogleAppsScript } from '@core/googleAppsScript/googleAppsScript.mock';
 
 describe('FriendDataService', () => {
   let underTest: FriendData;
 
-  beforeAll(() => {
-    global.Logger = MockLogger;
-    global.GoogleAppsScript = MockGoogleAppsScript;
-  });
+  beforeAll(() => {});
 
   beforeEach(() => {
     global.SpreadsheetApp = createMockSpreadsheetApp();
@@ -82,6 +77,63 @@ describe('FriendDataService', () => {
       expect(result2).toBe(true);
     });
   });
-});
 
-//TODO: Add integration tests
+  describe('integration scenarios', () => {
+    it('should handle multiple friend relationships correctly', () => {
+      underTest.addFriend(1, 2);
+      underTest.addFriend(1, 3);
+      underTest.addFriend(2, 4);
+      underTest.addFriend(3, 5);
+
+      expect(underTest.getFriends(1).sort()).toEqual([2, 3]);
+      expect(underTest.getFriends(2).sort()).toEqual([1, 4]);
+      expect(underTest.getFriends(3).sort()).toEqual([1, 5]);
+      expect(underTest.getFriends(4).sort()).toEqual([2]);
+      expect(underTest.getFriends(5).sort()).toEqual([3]);
+    });
+
+    it('should maintain data consistency after add and remove operations', () => {
+      underTest.addFriend(1, 2);
+      underTest.addFriend(1, 3);
+
+      expect(underTest.areFriends(1, 2)).toBe(true);
+      expect(underTest.areFriends(1, 3)).toBe(true);
+
+      underTest.removeFriend(1, 2);
+
+      expect(underTest.areFriends(1, 2)).toBe(false);
+      expect(underTest.areFriends(1, 3)).toBe(true);
+      expect(underTest.getFriends(1)).toEqual([3]);
+    });
+
+    it('should handle edge cases with user ID ordering', () => {
+      underTest.addFriend(5, 1);
+      underTest.addFriend(10, 2);
+
+      expect(underTest.areFriends(1, 5)).toBe(true);
+      expect(underTest.areFriends(2, 10)).toBe(true);
+      expect(underTest.getFriends(1)).toEqual([5]);
+      expect(underTest.getFriends(2)).toEqual([10]);
+    });
+
+    it('should support complex friend network scenarios', () => {
+      underTest.addFriend(1, 2);
+      underTest.addFriend(2, 3);
+      underTest.addFriend(3, 4);
+      underTest.addFriend(4, 5);
+
+      const user1Friends = underTest.getFriends(1);
+      const user3Friends = underTest.getFriends(3);
+
+      expect(user1Friends).toContain(2);
+      expect(user3Friends).toContain(2);
+      expect(user3Friends).toContain(4);
+
+      underTest.removeFriend(2, 3);
+
+      expect(underTest.areFriends(2, 3)).toBe(false);
+      expect(underTest.areFriends(1, 2)).toBe(true);
+      expect(underTest.areFriends(3, 4)).toBe(true);
+    });
+  });
+});

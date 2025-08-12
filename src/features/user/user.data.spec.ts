@@ -1,4 +1,3 @@
-import { MockLogger } from '@core/googleAppsScript';
 import { UserData } from './user.data';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { MockUserDataA, MockUserDataB } from './user.mock';
@@ -6,10 +5,6 @@ import { UserUpdate } from './user.type';
 
 describe('UserDataService', () => {
   let underTest: UserData;
-
-  beforeAll(() => {
-    global.Logger = MockLogger;
-  });
 
   beforeEach(() => {
     global.SpreadsheetApp = createMockSpreadsheetApp();
@@ -39,20 +34,40 @@ describe('UserDataService', () => {
   });
 
   describe('getUser', () => {
-    it('should return null for non-existent user', () => {
-      const result = underTest.getUser(999999);
-      expect(result).toBeNull();
+    describe('when userId is provided', () => {
+      it('should return null for non-existent user', () => {
+        const result = underTest.getUser({ userId: 999999 });
+        expect(result).toBeNull();
+      });
+
+      it('should return user data for existing user', () => {
+        createUser(underTest, MockUserDataA);
+        const result = underTest.getUser({ userId: MockUserDataA.userId });
+
+        expect(result).toBeDefined();
+        expect(result?.userId).toBe(MockUserDataA.userId);
+        expect(result?.firstName).toBe(MockUserDataA.firstName);
+        expect(result?.lastName).toBe(MockUserDataA.lastName);
+        expect(result?.username).toBe(MockUserDataA.username);
+      });
     });
 
-    it('should return user data for existing user', () => {
-      createUser(underTest, MockUserDataA);
-      const result = underTest.getUser(MockUserDataA.userId);
+    describe('when username is provided', () => {
+      it('should return null for non-existent user', () => {
+        const result = underTest.getUser({ username: 'nonexistent' });
+        expect(result).toBeNull();
+      });
 
-      expect(result).toBeDefined();
-      expect(result?.userId).toBe(MockUserDataA.userId);
-      expect(result?.firstName).toBe(MockUserDataA.firstName);
-      expect(result?.lastName).toBe(MockUserDataA.lastName);
-      expect(result?.username).toBe(MockUserDataA.username);
+      it('should return user data for existing user', () => {
+        createUser(underTest, MockUserDataA);
+        const result = underTest.getUser({ username: MockUserDataA.username });
+
+        expect(result).toBeDefined();
+        expect(result?.userId).toBe(MockUserDataA.userId);
+        expect(result?.firstName).toBe(MockUserDataA.firstName);
+        expect(result?.lastName).toBe(MockUserDataA.lastName);
+        expect(result?.username).toBe(MockUserDataA.username);
+      });
     });
   });
 
@@ -62,7 +77,7 @@ describe('UserDataService', () => {
       const result = underTest.deleteUser(MockUserDataA.userId);
 
       expect(result).toBe(true);
-      expect(underTest.getUser(MockUserDataA.userId)).toBeNull();
+      expect(underTest.getUser({ userId: MockUserDataA.userId })).toBeNull();
     });
 
     it('should return false for non-existent user', () => {

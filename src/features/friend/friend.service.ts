@@ -12,13 +12,34 @@ export class FriendService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'friend';
   private friendDataService: FriendData;
   private friendRequestDataService: FriendRequestData;
-  private userDataService: UserData;
+  private userData: UserData;
+
+  private sendMessage(chatId: number, message: string): void {
+    TelegramService.sendMessage({
+      chatId,
+      markdown: new MarkdownBuilder(message),
+    });
+  }
+
+  private sendMessageWithReplyMarkup(
+    chatId: number,
+    message: string,
+    replyMarkup: {
+      inline_keyboard: Array<Array<{ text: string; callback_data: string }>>;
+    },
+  ): void {
+    TelegramService.sendMessage({
+      chatId,
+      markdown: new MarkdownBuilder(message),
+      replyMarkup,
+    });
+  }
 
   constructor() {
     super();
     this.friendDataService = new FriendData();
     this.friendRequestDataService = new FriendRequestData();
-    this.userDataService = new UserData();
+    this.userData = new UserData();
   }
 
   override help(): string {
@@ -38,34 +59,28 @@ export class FriendService extends AppService {
     } else if (subCommand === 'ADD') {
       const otherUserName = command.positionalArgs[1];
       if (!otherUserName) {
-        TelegramService.sendMessage({
+        this.sendMessage(
           chatId,
-          markdown: new MarkdownBuilder(
-            'Please provide a username to add as friend\\. Example: /friend add username',
-          ),
-        });
+          'Please provide a username to add as friend. Example: /friend add username',
+        );
         return;
       }
       this.addFriend(from, chatId, otherUserName);
     } else if (subCommand === 'REMOVE') {
       const otherUserName = command.positionalArgs[1];
       if (!otherUserName) {
-        TelegramService.sendMessage({
+        this.sendMessage(
           chatId,
-          markdown: new MarkdownBuilder(
-            'Please provide a username to remove\\. Example: /friend remove username',
-          ),
-        });
+          'Please provide a username to remove. Example: /friend remove username',
+        );
         return;
       }
       this.removeFriend(from, chatId, otherUserName);
     } else {
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `Sorry\\, I don't know how to handle this command: '${subCommand}'\n\n${this.help()}`,
-        ),
-      });
+        `Sorry, I don't know how to handle this command: '${subCommand}'\n\n${this.help()}`,
+      );
     }
   }
 
@@ -74,22 +89,30 @@ export class FriendService extends AppService {
     chatId: number,
     otherUserName: string,
   ): Promise<void> {
-    const otherUser = this.findUserByUsername(otherUserName);
-    if (!otherUser) {
-      TelegramService.sendMessage({
+    const senderUser = this.userData.getUser({ userId: from.id });
+    if (!senderUser) {
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `User '${otherUserName}' not found\\. Please ask them to talk to the bot first to create their account\\.`,
-        ),
-      });
+        'You are not registered in the system. Please talk to the bot first to create your account.',
+      );
+      return;
+    }
+
+    const otherUser = this.userData.getUser({
+      username: otherUserName.startsWith('@')
+        ? otherUserName.slice(1)
+        : otherUserName,
+    });
+    if (!otherUser) {
+      this.sendMessage(
+        chatId,
+        `User '${otherUserName}' not found. Please ask them to talk to the bot first to create their account.`,
+      );
       return;
     }
 
     if (from.id === otherUser.userId) {
-      TelegramService.sendMessage({
-        chatId,
-        markdown: new MarkdownBuilder('You cannot add yourself as a friend\\.'),
-      });
+      this.sendMessage(chatId, 'You cannot add yourself as a friend.');
       return;
     }
 
@@ -98,12 +121,10 @@ export class FriendService extends AppService {
       otherUser.userId,
     );
     if (areAlreadyFriends) {
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `You are already friends with ${otherUserName}\\.`,
-        ),
-      });
+        `You are already friends with ${otherUserName}.`,
+      );
       return;
     }
 
@@ -118,12 +139,10 @@ export class FriendService extends AppService {
 
     if (existingRequest) {
       if (existingRequest.status === 'pending') {
-        TelegramService.sendMessage({
+        this.sendMessage(
           chatId,
-          markdown: new MarkdownBuilder(
-            `You already have a pending friend request to ${otherUserName}\\.`,
-          ),
-        });
+          `You already have a pending friend request to ${otherUserName}.`,
+        );
         return;
       } else if (existingRequest.status === 'cancelled') {
         this.friendRequestDataService.setFriendRequest({
@@ -131,7 +150,13 @@ export class FriendService extends AppService {
           recipientId: otherUser.userId,
           status: 'pending',
         });
-        this.sendFriendRequestNotification(from, otherUser, chatId);
+        this.sendMessage(chatId, `Friend request sent to ${otherUserName}.`);
+        return;
+      } else if (existingRequest.status === 'rejected') {
+        this.sendMessage(
+          chatId,
+          `You already have a pending friend request to ${otherUserName}.`,
+        );
         return;
       }
     }
@@ -171,12 +196,22 @@ export class FriendService extends AppService {
     chatId: number,
     otherUserName: string,
   ): Promise<void> {
-    const otherUser = this.findUserByUsername(otherUserName);
-    if (!otherUser) {
-      TelegramService.sendMessage({
+    const senderUser = this.userData.getUser({ userId: from.id });
+    if (!senderUser) {
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(`User '${otherUserName}' not found\\.`),
-      });
+        'You are not registered in the system. Please talk to the bot first to create your account.',
+      );
+      return;
+    }
+
+    const otherUser = this.userData.getUser({
+      username: otherUserName.startsWith('@')
+        ? otherUserName.slice(1)
+        : otherUserName,
+    });
+    if (!otherUser) {
+      this.sendMessage(chatId, `User '${otherUserName}' not found.`);
       return;
     }
 
@@ -194,23 +229,19 @@ export class FriendService extends AppService {
     );
 
     if (!areFriends && !existingRequest && !reverseRequest) {
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `No friend relationship or pending request found with ${otherUserName}\\.`,
-        ),
-      });
+        `No friend relationship or pending request found with ${otherUserName}.`,
+      );
       return;
     }
 
     if (areFriends) {
       this.friendDataService.removeFriend(from.id, otherUser.userId);
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `You have removed ${otherUserName} from your friends list\\.`,
-        ),
-      });
+        `You have removed ${otherUserName} from your friends list.`,
+      );
       return;
     }
 
@@ -220,12 +251,10 @@ export class FriendService extends AppService {
         recipientId: otherUser.userId,
         status: 'cancelled',
       });
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `You have cancelled your friend request to ${otherUserName}\\.`,
-        ),
-      });
+        `You have cancelled your friend request to ${otherUserName}.`,
+      );
       return;
     }
 
@@ -235,32 +264,37 @@ export class FriendService extends AppService {
         recipientId: from.id,
         status: 'rejected',
       });
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          `You have rejected the friend request from ${otherUserName}\\.`,
-        ),
-      });
+        `You have rejected the friend request from ${otherUserName}.`,
+      );
       return;
     }
   }
 
   private listFriends(from: TelegramUser, chatId: number): void {
+    const senderUser = this.userData.getUser({ userId: from.id });
+    if (!senderUser) {
+      this.sendMessage(
+        chatId,
+        'You are not registered in the system. Please talk to the bot first to create your account.',
+      );
+      return;
+    }
+
     const friendIds = this.friendDataService.getFriends(from.id);
 
     if (friendIds.length === 0) {
-      TelegramService.sendMessage({
+      this.sendMessage(
         chatId,
-        markdown: new MarkdownBuilder(
-          'You have no friends yet\\. Use /friend add <username> to add friends\\.',
-        ),
-      });
+        'You have no friends yet. Use /friend add <username> to add friends.',
+      );
       return;
     }
 
     const friendNames: string[] = [];
     for (const friendId of friendIds) {
-      const friendUser = this.userDataService.getUser(friendId);
+      const friendUser = this.userData.getUser({ userId: friendId });
       if (friendUser) {
         const displayName = friendUser.username
           ? `@${friendUser.username}`
@@ -270,45 +304,7 @@ export class FriendService extends AppService {
     }
 
     const friendsList = friendNames.join('\n');
-    TelegramService.sendMessage({
-      chatId,
-      markdown: new MarkdownBuilder(`*Your Friends*\n\n${friendsList}`),
-    });
-  }
-
-  private findUserByUsername(username: string): AppUser | null {
-    const cleanUsername = username.startsWith('@')
-      ? username.slice(1)
-      : username;
-    const allUsers = this.getAllUsers();
-    return allUsers.find((user) => user.username === cleanUsername) || null;
-  }
-
-  private getAllUsers(): AppUser[] {
-    const users: AppUser[] = [];
-    const sheet = this.userDataService['spreadsheetService']['getSheet']();
-    const lastRow = sheet.getLastRow();
-
-    if (lastRow <= 1) return users;
-
-    for (let row = 2; row <= lastRow; row++) {
-      const data = sheet.getRange(row, 1, 1, 6).getValues()[0];
-      if (data[1] !== '[DELETED]') {
-        const user = {
-          userId: data[0],
-          firstName: data[1],
-          lastName: data[2],
-          username: data[3],
-          createdAt: data[4],
-          updatedAt: data[5],
-        };
-        if (typeof user.userId === 'number') {
-          users.push(user as AppUser);
-        }
-      }
-    }
-
-    return users;
+    this.sendMessage(chatId, `*Your Friends*\n\n${friendsList}`);
   }
 
   private sendFriendRequestNotification(
@@ -323,17 +319,12 @@ export class FriendService extends AppService {
       ? `@${recipient.username}`
       : recipient.firstName;
 
-    TelegramService.sendMessage({
-      chatId: senderChatId,
-      markdown: new MarkdownBuilder(
-        `Friend request sent to ${recipientName}\\.`,
-      ),
-    });
+    this.sendMessage(senderChatId, `Friend request sent to ${recipientName}.`);
 
-    TelegramService.sendMessage({
-      chatId: recipient.userId,
-      markdown: new MarkdownBuilder(`${senderName} wants to be your friend\\!`),
-      replyMarkup: {
+    this.sendMessageWithReplyMarkup(
+      recipient.userId,
+      `${senderName} wants to be your friend!`,
+      {
         inline_keyboard: [
           [
             { text: '✅ Accept', callback_data: `/friend add ${senderName}` },
@@ -344,7 +335,7 @@ export class FriendService extends AppService {
           ],
         ],
       },
-    });
+    );
   }
 
   private acceptFriendRequest(
@@ -366,18 +357,11 @@ export class FriendService extends AppService {
       ? `@${sender.username}`
       : sender.firstName;
 
-    TelegramService.sendMessage({
-      chatId: accepterChatId,
-      markdown: new MarkdownBuilder(
-        `You are now friends with ${senderName}\\!`,
-      ),
-    });
+    this.sendMessage(accepterChatId, `You are now friends with ${senderName}!`);
 
-    TelegramService.sendMessage({
-      chatId: sender.userId,
-      markdown: new MarkdownBuilder(
-        `${accepterName} accepted your friend request\\!`,
-      ),
-    });
+    this.sendMessage(
+      sender.userId,
+      `${accepterName} accepted your friend request!`,
+    );
   }
 }

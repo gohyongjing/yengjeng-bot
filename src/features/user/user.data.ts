@@ -1,5 +1,5 @@
 import { SpreadsheetService } from '@core/spreadsheet/spreadsheet.service';
-import { User, UserUpdate } from './user.type';
+import { User, UserQuery, UserUpdate } from './user.type';
 import { isUser } from './user.predicates';
 import { LoggerService } from '@core/logger';
 
@@ -21,15 +21,26 @@ export class UserData {
     ]);
   }
 
-  getUser(userId: number): User | null {
-    const data = this.spreadsheetService.readRow(1, userId.toString());
+  getUser(query: UserQuery): User | null {
+    const lookupColumnNumber = query.userId ? 1 : 4;
+    const lookupValue = query.userId ? query.userId.toString() : query.username;
+    if (!lookupValue) {
+      this.loggerService.error(
+        `getUser: Either userId or username must be provided`,
+      );
+      return null;
+    }
+    const data = this.spreadsheetService.readRow(
+      lookupColumnNumber,
+      lookupValue,
+    );
     if (!data) {
-      this.loggerService.error(`User not found: ${userId}`);
+      this.loggerService.error(`User not found: ${lookupValue}`);
       return null;
     }
 
     if (data[1] === UserData.DELETE_MARKER) {
-      this.loggerService.info(`User has been deleted: ${userId}`);
+      this.loggerService.info(`User has been deleted: ${lookupValue}`);
       return null;
     }
 
@@ -37,7 +48,7 @@ export class UserData {
   }
 
   updateUser(updates: UserUpdate): User | null {
-    const existingUser = this.getUser(updates.userId);
+    const existingUser = this.getUser({ userId: updates.userId });
     const now = new Date();
 
     const userData: User = {

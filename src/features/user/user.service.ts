@@ -3,7 +3,7 @@ import { TelegramService, User as TelegramUser } from '@core/telegram';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { Command } from '@core/util/command';
 import { UserData } from './user.data';
-import { User as AppUser } from './user.type';
+import { User as AppUser, UserQuery } from './user.type';
 
 export class UserService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'user';
@@ -50,8 +50,12 @@ export class UserService extends AppService {
     return this.userData.updateUser(userData);
   }
 
+  getUser(query: UserQuery): AppUser | null {
+    return this.userData.getUser(query);
+  }
+
   private readProfile(from: TelegramUser, chatId: number): void {
-    const userData = this.userData.getUser(from.id);
+    const userData = this.getUser({ userId: from.id });
 
     if (!userData) {
       TelegramService.sendMessage({

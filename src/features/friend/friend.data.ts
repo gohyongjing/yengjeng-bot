@@ -10,7 +10,6 @@ export class FriendData {
   constructor() {
     this.loggerService = new LoggerService();
     this.spreadsheetService = new SpreadsheetService(FriendData.SHEET_NAME, [
-      'Id',
       'User1 Id',
       'User2 Id',
       'Created At',
@@ -20,14 +19,14 @@ export class FriendData {
   addFriend(userId: number, friendId: number): Friendship {
     const now = new Date();
     const friendData: Friendship = {
+      id: `${Math.min(userId, friendId)}-${Math.max(userId, friendId)}`,
       userId: Math.min(userId, friendId),
       friendId: Math.max(userId, friendId),
       createdAt: now,
     };
 
-    const friendIdString = `${friendData.userId}-${friendData.friendId}`;
-    this.spreadsheetService.updateRow(1, friendIdString, [
-      friendIdString,
+    this.spreadsheetService.updateRow(1, friendData.id, [
+      friendData.id,
       friendData.userId,
       friendData.friendId,
       friendData.createdAt,
@@ -46,70 +45,21 @@ export class FriendData {
 
   getFriends(userId: number): number[] {
     const friendIds: number[] = [];
-    const allFriends = this.getAllFriends();
+    this.spreadsheetService.readRows(2, userId.toString()).forEach((friend) => {
+      friendIds.push(Number(friend[2]));
+    });
+    this.spreadsheetService.readRows(3, userId.toString()).forEach((friend) => {
+      friendIds.push(Number(friend[1]));
+    });
 
-    for (const friend of allFriends) {
-      if (friend.userId === userId) {
-        friendIds.push(friend.friendId);
-      } else if (friend.friendId === userId) {
-        friendIds.push(friend.userId);
-      }
-    }
-
+    console.dir([`getFriends allFriends user id: ${userId}`, friendIds]);
     return friendIds;
   }
 
   areFriends(userId1: number, userId2: number): boolean {
+    console.dir(['areFriends', userId1, userId2]);
     const friendIds = this.getFriends(userId1);
+    console.dir(['areFriends user1 friends', friendIds]);
     return friendIds.includes(userId2);
-  }
-
-  private getAllFriends(): Friendship[] {
-    // TODO: Move to spreadsheet service
-    const friends: Friendship[] = [];
-    const sheet = this.spreadsheetService['getSheet']();
-    const lastRow = sheet.getLastRow();
-
-    if (lastRow <= 1) return friends;
-
-    for (let row = 2; row <= lastRow; row++) {
-      const data = sheet.getRange(row, 1, 1, 4).getValues()[0];
-      const friend = this.parseFriendData(data);
-      if (friend) {
-        friends.push(friend);
-      }
-    }
-
-    return friends;
-  }
-
-  private parseFriendData(data: unknown[]): Friendship | null {
-    if (data.length < 4) {
-      this.loggerService.error(`Failed to parse friend data: ${data}`);
-      return null;
-    }
-
-    const friendData = {
-      friendIdString: data[0],
-      userId: data[1],
-      friendId: data[2],
-      createdAt: data[3],
-    };
-
-    if (
-      typeof friendData.friendIdString === 'string' &&
-      typeof friendData.userId === 'number' &&
-      typeof friendData.friendId === 'number' &&
-      friendData.createdAt instanceof Date
-    ) {
-      return {
-        userId: friendData.userId,
-        friendId: friendData.friendId,
-        createdAt: friendData.createdAt,
-      } as Friendship;
-    }
-
-    this.loggerService.error(`Failed to parse friend data: ${data}`);
-    return null;
   }
 }

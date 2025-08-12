@@ -7,7 +7,6 @@ import {
   MockChat,
   MockTelegramUrlFetchApp,
 } from '@core/telegram/telegram.mock';
-import { MockLogger } from '@core/googleAppsScript';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { Update, Message, CallbackQuery } from '@core/telegram';
 
@@ -15,7 +14,6 @@ describe('AppService', () => {
   let underTest: MockAppService;
 
   beforeAll(() => {
-    global.Logger = MockLogger;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 

@@ -1,4 +1,3 @@
-import { MockLogger } from '@core/googleAppsScript';
 import {
   canParseMarkdownV2,
   MockTelegramUrlFetchApp,
@@ -13,7 +12,6 @@ describe('UserService', () => {
   let underTest: UserService;
 
   beforeAll(() => {
-    global.Logger = MockLogger;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 
@@ -161,6 +159,16 @@ describe('UserService', () => {
       expect(actualUrl.includes(encodeURIComponent('Bob'))).toBeFalsy();
       expect(actualUrl.includes(encodeURIComponent('Smith'))).toBeFalsy();
       expect(actualUrl.includes(encodeURIComponent('bob_smith'))).toBeFalsy();
+    });
+  });
+
+  describe('getUser', () => {
+    it('should return user data for existing user', () => {
+      underTest.updateProfile(MockUser);
+
+      const userData = underTest.getUser({ userId: MockUser.id });
+      expect(userData).toBeDefined();
+      expect(userData?.userId).toBe(MockUser.id);
     });
   });
 
