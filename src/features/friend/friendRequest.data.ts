@@ -53,24 +53,6 @@ export class FriendRequestData {
     return this.spreadsheetService.deleteRow(1, requestId);
   }
 
-  // private getAllFriendRequests(): FriendRequest[] {
-  //   const requests: FriendRequest[] = [];
-  //   const sheet = this.spreadsheetService['getSheet']();
-  //   const lastRow = sheet.getLastRow();
-
-  //   if (lastRow <= 1) return requests;
-
-  //   for (let row = 2; row <= lastRow; row++) {
-  //     const data = sheet.getRange(row, 1, 1, 4).getValues()[0];
-  //     const request = this.parseFriendRequest(data);
-  //     if (request) {
-  //       requests.push(request);
-  //     }
-  //   }
-
-  //   return requests;
-  // }
-
   private parseFriendRequest(data: unknown[]): FriendRequest | null {
     if (data.length < 4) {
       this.loggerService.error(`Failed to parse friend request data: ${data}`);
