@@ -11,5 +11,4 @@
  * if the variable is not set, and avoid that error when testing it.
  */
 
-// eslint-disable-next-line node/no-extraneous-require
 require('dotenv').config();

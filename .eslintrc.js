@@ -34,7 +34,7 @@ module.exports = {
       },
     },
     {
-      files: ['*.config.js'],
+      files: ['**/*.config.js'],
       rules: {
         'node/no-unpublished-require': 'off',
       },

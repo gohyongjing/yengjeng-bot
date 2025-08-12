@@ -11,4 +11,4 @@ export const MockCellImageBuilder: GoogleAppsScript.Spreadsheet.CellImageBuilder
     setAltTextTitle: (_title: string) => MockCellImageBuilder,
     setSourceUrl: (_url: string) => MockCellImageBuilder,
     toBuilder: () => MockCellImageBuilder,
-  };
+  } as GoogleAppsScript.Spreadsheet.CellImageBuilder;

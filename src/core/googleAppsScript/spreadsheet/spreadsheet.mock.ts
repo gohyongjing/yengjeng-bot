@@ -79,6 +79,7 @@ export const MockSpreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet = {
   getRowHeight: (_rowPosition: GoogleAppsScript.Integer) => 0,
   getSelection: () => MockSelection,
   getSheetByName: (_name: string) => null,
+  getSheetById: (_id: GoogleAppsScript.Integer) => MockSheet,
   getSheetId: () => 0,
   getSheetName: () => '',
   getSheetValues: (

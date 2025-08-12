@@ -13,7 +13,7 @@ module.exports = {
   },
   collectCoverageFrom: [`**/*.(${COVERAGE_FILE_SUFFIX.join('|')}).ts`],
   setupFiles: ['dotenv/config'],
-  setupFilesAfterEnv: ['./test/env.setup.js', './test/env.setup.ts'],
+  setupFilesAfterEnv: ['./test/env.setup.ts'],
   coverageDirectory: './coverage',
   testEnvironment: 'node',
   // Helps to use aliases in tsconfig (@module/*)
