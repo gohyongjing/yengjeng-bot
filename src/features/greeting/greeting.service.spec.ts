@@ -1,4 +1,3 @@
-import { MockLogger } from '@core/googleAppsScript';
 import {
   canParseMarkdownV2,
   MockTelegramUrlFetchApp,
@@ -13,7 +12,6 @@ describe('GreetingService', () => {
   let underTest: GreetingService;
 
   beforeAll(() => {
-    global.Logger = MockLogger;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 

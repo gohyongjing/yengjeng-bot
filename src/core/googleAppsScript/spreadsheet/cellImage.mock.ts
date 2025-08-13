@@ -6,4 +6,4 @@ export const MockCellImage: GoogleAppsScript.Spreadsheet.CellImage = {
   getContentUrl: () => '',
   getUrl: () => null,
   toBuilder: () => MockCellImageBuilder,
-};
+} as GoogleAppsScript.Spreadsheet.CellImage;

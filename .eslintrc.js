@@ -7,6 +7,7 @@ module.exports = {
     'plugin:jest/style',
     'plugin:prettier/recommended',
   ],
+  ignorePatterns: ['test/**/*.setup.ts'],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -34,7 +35,7 @@ module.exports = {
       },
     },
     {
-      files: ['*.config.js'],
+      files: ['**/*.config.js'],
       rules: {
         'node/no-unpublished-require': 'off',
       },

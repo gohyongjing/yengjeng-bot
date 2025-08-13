@@ -1,5 +1,4 @@
 import { SpreadsheetService } from './spreadsheet.service';
-import { MockLogger } from '@core/googleAppsScript';
 import {
   mockSpreadsheetData,
   createMockSpreadsheetApp,
@@ -8,14 +7,10 @@ import {
 describe('SpreadsheetService', () => {
   let underTest: SpreadsheetService;
 
-  beforeAll(() => {
-    global.Logger = MockLogger;
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
     global.SpreadsheetApp = createMockSpreadsheetApp();
-    underTest = new SpreadsheetService('TestSheet');
+    underTest = new SpreadsheetService('DefaultTestSheet');
   });
 
   describe('createRow', () => {
@@ -174,6 +169,65 @@ describe('SpreadsheetService', () => {
     });
   });
 
+  describe('readRows', () => {
+    describe('when rows are found', () => {
+      it('should return array with single row when one match is found', () => {
+        const lookupColumnNumber = 1;
+        const expectedRow = mockSpreadsheetData[1];
+        const lookupValue = expectedRow[0];
+
+        const result = underTest.readRows(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual([expectedRow]);
+        expect(result).toHaveLength(1);
+      });
+
+      it('should find row in different columns', () => {
+        const lookupColumnNumber = 2;
+        const expectedRow = mockSpreadsheetData[2];
+        const lookupValue = expectedRow[1];
+
+        const result = underTest.readRows(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual([expectedRow]);
+        expect(result).toHaveLength(1);
+      });
+
+      it('should handle case-sensitive search', () => {
+        const lookupColumnNumber = 3;
+        const expectedRow = mockSpreadsheetData[3];
+        const lookupValue = expectedRow[2];
+
+        const result = underTest.readRows(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual([expectedRow]);
+        expect(result).toHaveLength(1);
+      });
+    });
+
+    describe('when no rows are found', () => {
+      it('should return empty array for non-existent value', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = 'non-existent-value';
+
+        const result = underTest.readRows(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual([]);
+        expect(result).toHaveLength(0);
+      });
+
+      it('should return empty array for empty search value', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = '';
+
+        const result = underTest.readRows(lookupColumnNumber, lookupValue);
+
+        expect(result).toEqual([]);
+        expect(result).toHaveLength(0);
+      });
+    });
+  });
+
   describe('updateRow', () => {
     describe('when row exists', () => {
       it('should update existing row with new values', () => {
@@ -288,12 +342,58 @@ describe('SpreadsheetService', () => {
     });
   });
 
+  describe('deleteRow', () => {
+    describe('when row exists', () => {
+      it('should delete existing row and return true', () => {
+        const lookupColumnNumber = 1;
+        const existingRow = mockSpreadsheetData[1];
+        const lookupValue = existingRow[0];
+
+        const result = underTest.deleteRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toBe(true);
+      });
+
+      it('should handle different lookup columns', () => {
+        const lookupColumnNumber = 2;
+        const existingRow = mockSpreadsheetData[2];
+        const lookupValue = existingRow[1];
+
+        const result = underTest.deleteRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toBe(true);
+      });
+    });
+
+    describe('when row does not exist', () => {
+      it('should return false for non-existent value', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = 'non-existent-value';
+
+        const result = underTest.deleteRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toBe(false);
+      });
+
+      it('should return false for empty search value', () => {
+        const lookupColumnNumber = 1;
+        const lookupValue = '';
+
+        const result = underTest.deleteRow(lookupColumnNumber, lookupValue);
+
+        expect(result).toBe(false);
+      });
+    });
+  });
+
   describe('integration scenarios', () => {
     it('should handle multiple operations on different sheets', () => {
       const sheet1 = new SpreadsheetService('Users');
       const sheet2 = new SpreadsheetService('Products');
       const userData = ['user1', 'john'];
       const productData = ['product1', 'laptop'];
+
+      //create
       const userResult = sheet1.createRow(userData);
       const productResult = sheet2.createRow(productData);
       expect(userResult).toEqual(userData);
@@ -304,6 +404,7 @@ describe('SpreadsheetService', () => {
       expect(readUserResult).toEqual(userData);
       expect(readProductResult).toEqual(productData);
 
+      //update
       const updatedUserData = ['user1', 'john-updated'];
       const newUserData = ['user2', 'jane'];
       const updateResult = sheet1.updateRow(1, 'user1', updatedUserData);
@@ -317,6 +418,20 @@ describe('SpreadsheetService', () => {
       expect(finalReadUser1).toEqual(updatedUserData);
       expect(finalReadUser2).toEqual(newUserData);
       expect(finalReadProduct).toEqual(productData);
+
+      //delete
+      const deleteUserResult = sheet1.deleteRow(1, 'user1');
+      const deleteProductResult = sheet2.deleteRow(1, 'product1');
+      expect(deleteUserResult).toBe(true);
+      expect(deleteProductResult).toBe(true);
+
+      const deletedUserRead = sheet1.readRow(1, 'user1');
+      const deletedProductRead = sheet2.readRow(1, 'product1');
+      expect(deletedUserRead).toBeNull();
+      expect(deletedProductRead).toBeNull();
+
+      const remainingUser = sheet1.readRow(1, 'user2');
+      expect(remainingUser).toEqual(newUserData);
     });
 
     it('should handle multiple rows on the same sheet', () => {

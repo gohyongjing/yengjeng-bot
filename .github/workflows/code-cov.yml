@@ -4,6 +4,7 @@ on: [push]
 jobs:
   generate-code-cov-reports:
     runs-on: ubuntu-latest
+    environment: dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

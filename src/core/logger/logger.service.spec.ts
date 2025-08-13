@@ -1,14 +1,7 @@
 import { LoggerService } from './logger.service';
-import { MockLogger } from '@core/googleAppsScript';
-import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 
 describe('LoggerService', () => {
   let underTest: LoggerService;
-
-  beforeAll(() => {
-    global.Logger = MockLogger;
-    global.SpreadsheetApp = createMockSpreadsheetApp();
-  });
 
   beforeEach(() => {
     jest.clearAllMocks();

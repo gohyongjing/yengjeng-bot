@@ -5,7 +5,6 @@ import {
   sendMessage,
 } from '@core/telegram/telegram.mock';
 import { Builder } from '@core/util/builder';
-import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { App } from './app.service';
 
 describe('App', () => {
@@ -13,8 +12,6 @@ describe('App', () => {
     let underTest: App;
 
     beforeAll(() => {
-      global.Logger = MockLogger;
-      global.SpreadsheetApp = MockSpreadsheetApp;
       global.UrlFetchApp = MockTelegramUrlFetchApp;
     });
 
@@ -25,8 +22,8 @@ describe('App', () => {
 
     describe('Message update', () => {
       describe('Start command', () => {
-        it('should send hello message', () => {
-          underTest.processUpdate({
+        it('should send hello message', async () => {
+          await underTest.processUpdate({
             update_id: 1,
             message: new Builder(MockMessage).with({ text: '/start' }).build(),
           });
@@ -43,8 +40,8 @@ describe('App', () => {
       });
 
       describe('Help command', () => {
-        it('should send help message', () => {
-          underTest.processUpdate({
+        it('should send help message', async () => {
+          await underTest.processUpdate({
             update_id: 1,
             message: new Builder(MockMessage).with({ text: '/help' }).build(),
           });
@@ -63,9 +60,9 @@ describe('App', () => {
       });
 
       describe('Missing text', () => {
-        it('should not crash the app', () => {
-          expect(() => {
-            underTest.processUpdate({
+        it('should not crash the app', async () => {
+          expect(async () => {
+            await underTest.processUpdate({
               update_id: 1,
               message: new Builder(MockMessage).without(['text']).build(),
             });
@@ -75,9 +72,9 @@ describe('App', () => {
     });
 
     describe('Unhandled updates', () => {
-      it('should not crash the app', () => {
-        expect(() => {
-          underTest.processUpdate({
+      it('should not crash the app', async () => {
+        expect(async () => {
+          await underTest.processUpdate({
             update_id: 1,
             edited_message: MockMessage,
           });

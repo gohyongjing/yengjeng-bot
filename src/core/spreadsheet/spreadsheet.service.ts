@@ -50,8 +50,25 @@ export class SpreadsheetService {
     if (foundCell) {
       return sheet.getRange(foundCell.getRow(), 1, 1, sheet.getLastColumn());
     }
-
     return null;
+  }
+
+  private getRanges(
+    lookupColumnNumber: number,
+    lookupValue: string,
+  ): GoogleAppsScript.Spreadsheet.Range[] {
+    const sheet = this.getSheet();
+    const lookupColumn = sheet.getRange(
+      1,
+      lookupColumnNumber,
+      sheet.getLastRow(),
+      1,
+    );
+    const textFinder = lookupColumn.createTextFinder(lookupValue);
+    const foundCells = textFinder.findAll();
+    return foundCells.map((cell) =>
+      sheet.getRange(cell.getRow(), 1, 1, sheet.getLastColumn()),
+    );
   }
 
   /**
@@ -78,8 +95,12 @@ export class SpreadsheetService {
     if (range) {
       return range.getValues()[0];
     }
-
     return null;
+  }
+
+  readRows(lookupColumnNumber: number, lookupValue: string): unknown[][] {
+    const ranges = this.getRanges(lookupColumnNumber, lookupValue);
+    return ranges.map((range) => range.getValues()[0]);
   }
 
   /**
@@ -102,5 +123,22 @@ export class SpreadsheetService {
     }
 
     return this.createRow(values);
+  }
+
+  /**
+   * Deletes a row from a sheet by looking up a value in a specific column
+   * @param lookupColumnNumber - The column number to search in (1-indexed)
+   * @param lookupValue - The value to search for
+   * @returns True if the row was deleted, false if not found
+   */
+  deleteRow(lookupColumnNumber: number, lookupValue: string): boolean {
+    const range = this.getRange(lookupColumnNumber, lookupValue);
+
+    if (range) {
+      range.deleteCells(GoogleAppsScript.Spreadsheet.Dimension.ROWS);
+      return true;
+    }
+
+    return false;
   }
 }

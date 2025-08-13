@@ -5,7 +5,7 @@ import { LoggerService } from '@core/logger';
 
 export abstract class AppService {
   abstract APP_SERVICE_COMMAND_WORD: string;
-  protected readonly loggerService: LoggerService;
+  readonly loggerService: LoggerService;
 
   constructor() {
     this.loggerService = new LoggerService();

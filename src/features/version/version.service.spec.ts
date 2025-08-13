@@ -1,4 +1,3 @@
-import { MockLogger, MockSpreadsheetApp } from '@core/googleAppsScript';
 import { VersionService } from './version.service';
 import {
   MockTelegramUrlFetchApp,
@@ -11,8 +10,6 @@ describe('VersionService', () => {
   let underTest: VersionService;
 
   beforeAll(() => {
-    global.Logger = MockLogger;
-    global.SpreadsheetApp = MockSpreadsheetApp;
     global.UrlFetchApp = MockTelegramUrlFetchApp;
   });
 

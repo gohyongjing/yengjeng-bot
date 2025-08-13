@@ -15,51 +15,71 @@ export const mockSpreadsheetData = [
   ['4', 'Alice Brown', 'alice@example.com', 'pending', '2024-01-04'],
 ];
 
-export const createMockSpreadsheetApp = () => {
-  const spreadsheetInstances = new Map<
-    string,
-    GoogleAppsScript.Spreadsheet.Spreadsheet
-  >();
+export const defaultMockSpreadsheetApps = {
+  TEST_SPREADSHEET_ID: {
+    DefaultTestSheet: mockSpreadsheetData,
+  },
+};
 
+export const createMockSpreadsheetApp = (
+  spreadsheetApps: {
+    [id: string]: { [sheetName: string]: unknown[][] };
+  } = defaultMockSpreadsheetApps,
+) => {
   const createMockSpreadsheet = (
-    initialData: string[][] = [],
+    sheets: { [sheetName: string]: unknown[][] } = {},
   ): GoogleAppsScript.Spreadsheet.Spreadsheet => {
-    const sheetMap = new Map<string, GoogleAppsScript.Spreadsheet.Sheet>();
-
     const createSheet = (
       sheetName: string,
-      initialSheetData: string[][] = [],
+      initialSheetData: unknown[][] = [],
     ): GoogleAppsScript.Spreadsheet.Sheet => {
       const data = initialSheetData.map((row) => [...row]);
 
-      const createMockFoundCell = (
-        rowIndex: number,
-      ): GoogleAppsScript.Spreadsheet.Range => {
-        return new Builder(MockRange)
-          .with({
-            getRow: () => rowIndex + 1,
-          })
-          .build();
-      };
-
       const createMockTextFinder = (
+        startRow: number,
         searchValue: string,
         searchColumn: number,
       ): GoogleAppsScript.Spreadsheet.TextFinder => {
+        let currentRow = startRow;
         return new Builder(MockTextFinder)
           .with({
             findNext: () => {
-              for (let i = 0; i < data.length; i++) {
+              while (currentRow < data.length) {
+                const row = data[currentRow];
+                if (row && row.length >= searchColumn) {
+                  // Google sheets use non strict equality check
+                  // eslint-disable-next-line eqeqeq
+                  if (row[searchColumn - 1] == searchValue) {
+                    return new Builder(MockRange)
+                      .with({
+                        getRow: () => currentRow + 1,
+                      })
+                      .build();
+                  }
+                }
+                currentRow++;
+              }
+              return null;
+            },
+            findAll: () => {
+              const foundCells: GoogleAppsScript.Spreadsheet.Range[] = [];
+              for (let i = startRow; i < data.length; i++) {
                 const row = data[i];
                 if (row && row.length >= searchColumn) {
                   // Google sheets use non strict equality check
                   // eslint-disable-next-line eqeqeq
                   if (row[searchColumn - 1] == searchValue) {
-                    return createMockFoundCell(i);
+                    foundCells.push(
+                      new Builder(MockRange)
+                        .with({
+                          getRow: () => i + 1,
+                        })
+                        .build(),
+                    );
                   }
                 }
               }
-              return null;
+              return foundCells;
             },
           })
           .build();
@@ -90,12 +110,25 @@ export const createMockSpreadsheetApp = () => {
               return [[]];
             },
             createTextFinder: (searchValue: string) => {
-              return createMockTextFinder(searchValue, colIndex + 1);
+              return createMockTextFinder(rowIndex, searchValue, colIndex + 1);
             },
             getRow: () => rowIndex + 1,
             getColumn: () => colIndex + 1,
             getNumRows: () => numRows,
             getNumColumns: () => numCols,
+            deleteCells: (
+              // shiftDimension: GoogleAppsScript.Spreadsheet.Dimension,
+              shiftDimension: unknown,
+            ) => {
+              if (
+                // shiftDimension === GoogleAppsScript.Spreadsheet.Dimension.ROWS
+                shiftDimension === 'ROWS'
+              ) {
+                if (rowIndex >= 0 && rowIndex < data.length) {
+                  data.splice(rowIndex, numRows);
+                }
+              }
+            },
           })
           .build();
       };
@@ -129,7 +162,7 @@ export const createMockSpreadsheetApp = () => {
             return mockSheet;
           },
           createTextFinder: (searchValue: string) => {
-            return createMockTextFinder(searchValue, 1);
+            return createMockTextFinder(0, searchValue, 1);
           },
           getName: () => sheetName,
         })
@@ -138,8 +171,10 @@ export const createMockSpreadsheetApp = () => {
       return mockSheet;
     };
 
-    const defaultSheet = createSheet('TestSheet', initialData);
-    sheetMap.set('TestSheet', defaultSheet);
+    const sheetMap = new Map<string, GoogleAppsScript.Spreadsheet.Sheet>();
+    for (const [sheetName, data] of Object.entries(sheets)) {
+      sheetMap.set(sheetName, createSheet(sheetName, data));
+    }
 
     const mockSpreadsheet = new Builder(MockSpreadsheet)
       .with({
@@ -157,16 +192,25 @@ export const createMockSpreadsheetApp = () => {
     return mockSpreadsheet;
   };
 
+  const spreadsheetInstances = new Map<
+    string,
+    GoogleAppsScript.Spreadsheet.Spreadsheet
+  >();
+
+  if (spreadsheetApps) {
+    Object.entries(spreadsheetApps).forEach(([spreadsheetId, sheets]) => {
+      spreadsheetInstances.set(spreadsheetId, createMockSpreadsheet(sheets));
+    });
+  }
+
   return new Builder(MockSpreadsheetApp)
     .with({
       openById: jest.fn((spreadsheetId: string) => {
-        if (!spreadsheetInstances.has(spreadsheetId)) {
-          spreadsheetInstances.set(
-            spreadsheetId,
-            createMockSpreadsheet(mockSpreadsheetData),
-          );
+        const sheet = spreadsheetInstances.get(spreadsheetId)!;
+        if (sheet === undefined) {
+          throw `Sheet with id ${spreadsheetId} not found`;
         }
-        return spreadsheetInstances.get(spreadsheetId)!;
+        return sheet;
       }),
     })
     .build();

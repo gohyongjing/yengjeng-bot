@@ -1,14 +1,9 @@
 import { ScrabbleData } from './scrabble.data';
-import { MockLogger } from '@core/googleAppsScript';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { GameState } from './scrabble.type';
 
 describe('ScrabbleData', () => {
   let underTest: ScrabbleData;
-
-  beforeAll(() => {
-    global.Logger = MockLogger;
-  });
 
   beforeEach(() => {
     jest.clearAllMocks();
