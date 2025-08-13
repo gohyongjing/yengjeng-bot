@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2015",
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -29,15 +27,9 @@
     "useUnknownInCatchVariables": true,
     "exactOptionalPropertyTypes": true,
     "paths": {
-      "@core/*": [
-        "src/core/*"
-      ],
-      "@features/*": [
-        "src/features/*"
-      ]
+      "@core/*": ["src/core/*"],
+      "@features/*": ["src/features/*"]
     }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }

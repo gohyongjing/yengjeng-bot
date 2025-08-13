@@ -274,7 +274,6 @@ export class FriendService extends AppService {
   }
 
   private listFriends(from: TelegramUser, chatId: number): void {
-    console.dir([]);
     this.loggerService.debug('Listing friends');
     const senderUser = this.userData.getUser({ userId: from.id });
     this.loggerService.debug('Got User!');

@@ -206,7 +206,11 @@ export const createMockSpreadsheetApp = (
   return new Builder(MockSpreadsheetApp)
     .with({
       openById: jest.fn((spreadsheetId: string) => {
-        return spreadsheetInstances.get(spreadsheetId)!;
+        const sheet = spreadsheetInstances.get(spreadsheetId)!;
+        if (sheet === undefined) {
+          throw `Sheet with id ${spreadsheetId} not found`;
+        }
+        return sheet;
       }),
     })
     .build();
