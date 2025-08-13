@@ -46,16 +46,17 @@ export class FriendService extends AppService {
     return '*FRIEND*\nFRIEND ADD <username>: Send or accept a friend request\nFRIEND REMOVE <username>: Remove friend or reject/cancel request\nFRIEND LIST: View your friends list';
   }
 
-  override processCommand(
+  override async processCommand(
     command: Command,
     from: TelegramUser,
     chatId: number,
-  ): void {
+  ) {
     //TODO: Design a new system to attach handlers to commands and automatically parse commands with args with type checking
     const subCommand = command.positionalArgs[0]?.toUpperCase();
 
     if (!subCommand || subCommand === 'LIST') {
       this.listFriends(from, chatId);
+      return;
     } else if (subCommand === 'ADD') {
       const otherUserName = command.positionalArgs[1];
       if (!otherUserName) {
@@ -65,7 +66,7 @@ export class FriendService extends AppService {
         );
         return;
       }
-      this.addFriend(from, chatId, otherUserName);
+      await this.addFriend(from, chatId, otherUserName);
     } else if (subCommand === 'REMOVE') {
       const otherUserName = command.positionalArgs[1];
       if (!otherUserName) {
@@ -75,7 +76,7 @@ export class FriendService extends AppService {
         );
         return;
       }
-      this.removeFriend(from, chatId, otherUserName);
+      await this.removeFriend(from, chatId, otherUserName);
     } else {
       this.sendMessage(
         chatId,
@@ -273,8 +274,13 @@ export class FriendService extends AppService {
   }
 
   private listFriends(from: TelegramUser, chatId: number): void {
+    console.dir([]);
+    this.loggerService.debug('Listing friends');
     const senderUser = this.userData.getUser({ userId: from.id });
+    this.loggerService.debug('Got User!');
+    this.loggerService.debug(`Got User!: ${JSON.stringify(senderUser)}`);
     if (!senderUser) {
+      this.loggerService.debug('sending No User message');
       this.sendMessage(
         chatId,
         'You are not registered in the system. Please talk to the bot first to create your account.',
@@ -282,9 +288,18 @@ export class FriendService extends AppService {
       return;
     }
 
-    const friendIds = this.friendDataService.getFriends(from.id);
-
+    this.loggerService.debug('getting friends');
+    let friendIds: number[] = [];
+    try {
+      friendIds = this.friendDataService.getFriends(from.id);
+    } catch (e) {
+      this.loggerService.error(e);
+      return;
+    }
+    this.loggerService.debug(`Got Friends!: ${friendIds.length}`);
+    this.loggerService.debug(`Got Friends!: ${JSON.stringify(friendIds)}`);
     if (friendIds.length === 0) {
+      this.loggerService.debug('sending No Friends message');
       this.sendMessage(
         chatId,
         'You have no friends yet. Use /friend add <username> to add friends.',
@@ -292,6 +307,7 @@ export class FriendService extends AppService {
       return;
     }
 
+    this.loggerService.debug('getting friend names');
     const friendNames: string[] = [];
     for (const friendId of friendIds) {
       const friendUser = this.userData.getUser({ userId: friendId });
@@ -303,7 +319,9 @@ export class FriendService extends AppService {
       }
     }
 
+    this.loggerService.debug('sending friends list');
     const friendsList = friendNames.join('\n');
+    this.loggerService.debug(`Friends List!: ${friendsList}`);
     this.sendMessage(chatId, `*Your Friends*\n\n${friendsList}`);
   }
 

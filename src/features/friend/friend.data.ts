@@ -52,14 +52,11 @@ export class FriendData {
       friendIds.push(Number(friend[1]));
     });
 
-    console.dir([`getFriends allFriends user id: ${userId}`, friendIds]);
     return friendIds;
   }
 
   areFriends(userId1: number, userId2: number): boolean {
-    console.dir(['areFriends', userId1, userId2]);
     const friendIds = this.getFriends(userId1);
-    console.dir(['areFriends user1 friends', friendIds]);
     return friendIds.includes(userId2);
   }
 }

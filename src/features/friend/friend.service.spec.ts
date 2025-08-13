@@ -38,9 +38,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should handle gracefully when sender is not in database', () => {
+      it('should handle gracefully when sender is not in database', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls.length).toBeGreaterThan(0);
         const lastCall =
@@ -61,9 +61,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return error message', () => {
+      it('should return error message', async () => {
         const command = new Command('/friend add nonexistent_user');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls.length).toBeGreaterThan(0);
         const firstCall = sendMessage.mock.calls[0][0];
@@ -81,9 +81,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should send friend request', () => {
+      it('should send friend request', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(checkFriendRequestSent(sendMessage.mock.calls)).toBeTruthy();
       });
@@ -95,9 +95,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return error message', () => {
+      it('should return error message', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(
           checkFriendRequestNotSentDueToExistingRequest(sendMessage.mock.calls),
@@ -111,9 +111,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should accept the friend request', () => {
+      it('should accept the friend request', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(checkFriendRequestAccepted(sendMessage.mock.calls)).toBeTruthy();
       });
@@ -125,9 +125,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should reactivate the request without notifying the recipient', () => {
+      it('should reactivate the request without notifying the recipient', async () => {
         const command = new Command('/friend add janesmith');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(
           checkFriendRequestSent(sendMessage.mock.calls, false),
@@ -141,9 +141,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should delete old request and create new one', () => {
+      it('should delete old request and create new one', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(checkFriendRequestSent(sendMessage.mock.calls)).toBeTruthy();
       });
@@ -155,9 +155,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should send a new friend request', () => {
+      it('should send a new friend request', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(checkFriendRequestSent(sendMessage.mock.calls)).toBeTruthy();
       });
@@ -169,9 +169,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return error message', () => {
+      it('should return error message', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(
           checkFriendRequestNotSentDueToExistingRequest(sendMessage.mock.calls),
@@ -185,9 +185,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return error message', () => {
+      it('should return error message', async () => {
         const command = new Command(`/friend add ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -203,9 +203,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should handle command without username', () => {
+      it('should handle command without username', async () => {
         const command = new Command('/friend add');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -216,9 +216,9 @@ describe('FriendService', () => {
         ).toBeTruthy();
       });
 
-      it('should prevent self-friending', () => {
+      it('should prevent self-friending', async () => {
         const command = new Command(`/friend add ${MockUser.username}`);
-        underTest.processCommand(command, MockUser, MockUser.id);
+        await underTest.processCommand(command, MockUser, MockUser.id);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -238,9 +238,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should handle gracefully when sender is not in database', () => {
+      it('should handle gracefully when sender is not in database', async () => {
         const command = new Command(`/friend remove ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -260,9 +260,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return error message', () => {
+      it('should return error message', async () => {
         const command = new Command('/friend remove nonexistent_user');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -280,9 +280,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return error message', () => {
+      it('should return error message', async () => {
         const command = new Command(`/friend remove ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -302,9 +302,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should cancel the friend request', () => {
+      it('should cancel the friend request', async () => {
         const command = new Command(`/friend remove ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -324,9 +324,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should reject the friend request', () => {
+      it('should reject the friend request', async () => {
         const command = new Command(`/friend remove ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -346,9 +346,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should remove the friendship', () => {
+      it('should remove the friendship', async () => {
         const command = new Command(`/friend remove ${MockUser2.username}`);
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -368,9 +368,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should handle command without username', () => {
+      it('should handle command without username', async () => {
         const command = new Command('/friend remove');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -390,9 +390,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should handle gracefully when sender is not in database', () => {
+      it('should handle gracefully when sender is not in database', async () => {
         const command = new Command('/friend list');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -412,9 +412,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return no friends message', () => {
+      it('should return no friends message', async () => {
         const command = new Command('/friend list');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -430,9 +430,9 @@ describe('FriendService', () => {
         underTest = new FriendService();
       });
 
-      it('should return friends list', () => {
+      it('should return friends list', async () => {
         const command = new Command('/friend list');
-        underTest.processCommand(command, MockUser, 123);
+        await underTest.processCommand(command, MockUser, 123);
 
         expect(sendMessage.mock.calls).toHaveLength(1);
         const lastCall = sendMessage.mock.calls[0][0];
@@ -452,9 +452,9 @@ describe('FriendService', () => {
       underTest = new FriendService();
     });
 
-    it('should handle unknown command', () => {
+    it('should handle unknown command', async () => {
       const command = new Command('/friend unknown');
-      underTest.processCommand(command, MockUser, 123);
+      await underTest.processCommand(command, MockUser, 123);
 
       expect(sendMessage.mock.calls).toHaveLength(1);
       const lastCall = sendMessage.mock.calls[0][0];
@@ -473,15 +473,15 @@ describe('FriendService', () => {
       underTest = new FriendService();
     });
 
-    it('should handle complete friend workflow: add, list, then remove', () => {
+    it('should handle complete friend workflow: add, list, then remove', async () => {
       const addCommand = new Command(`/friend add ${MockUser2.username}`);
       const listCommand = new Command('/friend list');
       const removeCommand = new Command(`/friend remove ${MockUser2.username}`);
 
-      underTest.processCommand(addCommand, MockUser, 123);
-      underTest.processCommand(listCommand, MockUser, 123);
-      underTest.processCommand(removeCommand, MockUser, 123);
-      underTest.processCommand(listCommand, MockUser, 123);
+      await underTest.processCommand(addCommand, MockUser, 123);
+      await underTest.processCommand(listCommand, MockUser, 123);
+      await underTest.processCommand(removeCommand, MockUser, 123);
+      await underTest.processCommand(listCommand, MockUser, 123);
 
       expect(sendMessage.mock.calls).toHaveLength(5);
       expect(
@@ -511,16 +511,16 @@ describe('FriendService', () => {
       ).toBeTruthy();
     });
 
-    it('should handle multiple friend operations in sequence with different users', () => {
+    it('should handle multiple friend operations in sequence with different users', async () => {
       const addCommand1 = new Command(`/friend add ${MockUser2.username}`);
       const addCommand2 = new Command(`/friend add ${MockUser.username}`);
       const listCommand1 = new Command('/friend list');
       const listCommand2 = new Command('/friend list');
 
-      underTest.processCommand(addCommand1, MockUser, 123);
-      underTest.processCommand(addCommand2, MockUser2, 123);
-      underTest.processCommand(listCommand1, MockUser, 123);
-      underTest.processCommand(listCommand2, MockUser2, 123);
+      await underTest.processCommand(addCommand1, MockUser, 123);
+      await underTest.processCommand(addCommand2, MockUser2, 123);
+      await underTest.processCommand(listCommand1, MockUser, 123);
+      await underTest.processCommand(listCommand2, MockUser2, 123);
 
       expect(sendMessage.mock.calls).toHaveLength(6);
       expect(
@@ -565,15 +565,15 @@ describe('FriendService', () => {
       ).toBeTruthy();
     });
 
-    it('should handle request cancellation and reactivation', () => {
+    it('should handle request cancellation and reactivation', async () => {
       const addCommand = new Command(`/friend add ${MockUser2.username}`);
-      underTest.processCommand(addCommand, MockUser, 123);
+      await underTest.processCommand(addCommand, MockUser, 123);
 
       const removeCommand = new Command(`/friend remove ${MockUser2.username}`);
-      underTest.processCommand(removeCommand, MockUser, 123);
+      await underTest.processCommand(removeCommand, MockUser, 123);
 
       const addCommand2 = new Command(`/friend add ${MockUser2.username}`);
-      underTest.processCommand(addCommand2, MockUser, 123);
+      await underTest.processCommand(addCommand2, MockUser, 123);
 
       expect(sendMessage.mock.calls).toHaveLength(4);
       expect(
@@ -598,15 +598,15 @@ describe('FriendService', () => {
       ).toBeTruthy();
     });
 
-    it('should handle request rejection and new request creation', () => {
+    it('should handle request rejection and new request creation', async () => {
       const addCommand = new Command(`/friend add ${MockUser2.username}`);
-      underTest.processCommand(addCommand, MockUser, MockUser.id);
+      await underTest.processCommand(addCommand, MockUser, MockUser.id);
 
       const removeCommand = new Command(`/friend remove ${MockUser.username}`);
-      underTest.processCommand(removeCommand, MockUser2, MockUser2.id);
+      await underTest.processCommand(removeCommand, MockUser2, MockUser2.id);
 
       const addCommand2 = new Command(`/friend add ${MockUser.username}`);
-      underTest.processCommand(addCommand2, MockUser2, MockUser2.id);
+      await underTest.processCommand(addCommand2, MockUser2, MockUser2.id);
 
       expect(sendMessage.mock.calls).toHaveLength(5);
       expect(
@@ -643,14 +643,14 @@ describe('FriendService', () => {
       underTest = new FriendService();
     });
 
-    it('should handle error scenarios and continue processing subsequent commands', () => {
+    it('should handle error scenarios and continue processing subsequent commands', async () => {
       const invalidCommand = new Command('/friend add');
       const validCommand = new Command('/friend list');
       const removeCommand = new Command('/friend remove nonexistent');
 
-      underTest.processCommand(invalidCommand, MockUser, 123);
-      underTest.processCommand(validCommand, MockUser, 123);
-      underTest.processCommand(removeCommand, MockUser, 123);
+      await underTest.processCommand(invalidCommand, MockUser, 123);
+      await underTest.processCommand(validCommand, MockUser, 123);
+      await underTest.processCommand(removeCommand, MockUser, 123);
 
       expect(sendMessage.mock.calls.length).toBeGreaterThan(2);
 

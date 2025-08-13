@@ -62,13 +62,6 @@ export const createMockSpreadsheetApp = (
               return null;
             },
             findAll: () => {
-              console.dir([
-                'findAll',
-                startRow,
-                searchValue,
-                searchColumn,
-                data,
-              ]);
               const foundCells: GoogleAppsScript.Spreadsheet.Range[] = [];
               for (let i = startRow; i < data.length; i++) {
                 const row = data[i];
@@ -76,11 +69,6 @@ export const createMockSpreadsheetApp = (
                   // Google sheets use non strict equality check
                   // eslint-disable-next-line eqeqeq
                   if (row[searchColumn - 1] == searchValue) {
-                    console.dir([
-                      'findAll while loop eq',
-                      row[searchColumn - 1],
-                      searchValue,
-                    ]);
                     foundCells.push(
                       new Builder(MockRange)
                         .with({
@@ -88,16 +76,9 @@ export const createMockSpreadsheetApp = (
                         })
                         .build(),
                     );
-                  } else {
-                    console.dir([
-                      'findAll while loop not eq',
-                      row[searchColumn - 1],
-                      searchValue,
-                    ]);
                   }
                 }
               }
-              console.dir(['findAll end', foundCells]);
               return foundCells;
             },
           })

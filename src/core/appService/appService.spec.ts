@@ -25,7 +25,7 @@ describe('AppService', () => {
 
   describe('processUpdate', () => {
     describe('message update', () => {
-      it('should process message update correctly', () => {
+      it('should process message update correctly', async () => {
         const message = new Builder(MockMessage)
           .with({
             text: '/test command',
@@ -39,7 +39,7 @@ describe('AppService', () => {
           message: message,
         };
 
-        underTest.processUpdate(update);
+        await underTest.processUpdate(update);
 
         expect(underTest.processCommandCalls).toHaveLength(1);
         expect(underTest.processCommandCalls[0].command.commandWord).toBe(
@@ -49,7 +49,7 @@ describe('AppService', () => {
         expect(underTest.processCommandCalls[0].chatId).toBe(MockChat.id);
       });
 
-      it('should handle message with different command word', () => {
+      it('should handle message with different command word', async () => {
         const message: Message = {
           ...MockMessage,
           text: '/other command',
@@ -62,14 +62,14 @@ describe('AppService', () => {
           message: message,
         };
 
-        underTest.processUpdate(update);
+        await underTest.processUpdate(update);
 
         expect(underTest.processCommandCalls).toHaveLength(0);
       });
     });
 
     describe('callback query update', () => {
-      it('should process callback query update correctly', () => {
+      it('should process callback query update correctly', async () => {
         const callbackQuery = new Builder(MockCallbackQuery)
           .with({
             data: '/test callback',
@@ -86,7 +86,7 @@ describe('AppService', () => {
           callback_query: callbackQuery,
         };
 
-        underTest.processUpdate(update);
+        await underTest.processUpdate(update);
 
         expect(underTest.processCommandCalls).toHaveLength(1);
         expect(underTest.processCommandCalls[0].command.commandWord).toBe(
@@ -96,7 +96,7 @@ describe('AppService', () => {
         expect(underTest.processCommandCalls[0].chatId).toBe(MockChat.id);
       });
 
-      it('should handle callback query with different command word', () => {
+      it('should handle callback query with different command word', async () => {
         const callbackQuery: CallbackQuery = {
           ...MockCallbackQuery,
           data: '/other callback',
@@ -112,20 +112,20 @@ describe('AppService', () => {
           callback_query: callbackQuery,
         };
 
-        underTest.processUpdate(update);
+        await underTest.processUpdate(update);
 
         expect(underTest.processCommandCalls).toHaveLength(0);
       });
     });
 
     describe('update without message or callback_query', () => {
-      it('should handle update with neither message nor callback_query', () => {
+      it('should handle update with neither message nor callback_query', async () => {
         const update: Update = {
           update_id: 1,
           edited_message: MockMessage,
         };
 
-        underTest.processUpdate(update);
+        await underTest.processUpdate(update);
         expect(underTest.processCommandCalls).toHaveLength(0);
       });
     });
@@ -133,7 +133,7 @@ describe('AppService', () => {
 
   describe('processMessage', () => {
     describe('valid command', () => {
-      it('should process valid command and call processCommand', () => {
+      it('should process valid command and call processCommand', async () => {
         const message = new Builder(MockMessage)
           .with({
             text: '/test command',
@@ -142,7 +142,7 @@ describe('AppService', () => {
           })
           .build();
 
-        underTest.processMessage(message);
+        await underTest.processMessage(message);
 
         expect(underTest.processCommandCalls).toHaveLength(1);
         expect(underTest.processCommandCalls[0].command.commandWord).toBe(
@@ -154,7 +154,7 @@ describe('AppService', () => {
     });
 
     describe('invalid command', () => {
-      it('should not process command for different service', () => {
+      it('should not process command for different service', async () => {
         const message = new Builder(MockMessage)
           .with({
             text: '/other command',
@@ -163,11 +163,11 @@ describe('AppService', () => {
           })
           .build();
 
-        underTest.processMessage(message);
+        await underTest.processMessage(message);
         expect(underTest.processCommandCalls).toHaveLength(0);
       });
 
-      it('should handle message without text', () => {
+      it('should handle message without text', async () => {
         const message: Message = {
           ...MockMessage,
           text: '',
@@ -175,13 +175,13 @@ describe('AppService', () => {
           chat: MockChat,
         };
 
-        underTest.processMessage(message);
+        await underTest.processMessage(message);
         expect(underTest.processCommandCalls).toHaveLength(0);
       });
     });
 
     describe('message without user', () => {
-      it('should handle message without from field', () => {
+      it('should handle message without from field', async () => {
         const message: Message = {
           text: '/test command',
           message_id: 1,
@@ -189,7 +189,7 @@ describe('AppService', () => {
           chat: MockChat,
         };
 
-        underTest.processMessage(message);
+        await underTest.processMessage(message);
         expect(underTest.processCommandCalls).toHaveLength(0);
       });
     });
@@ -197,7 +197,7 @@ describe('AppService', () => {
 
   describe('processCallbackQuery', () => {
     describe('valid callback query', () => {
-      it('should process valid callback query and call processCommand', () => {
+      it('should process valid callback query and call processCommand', async () => {
         const callbackQuery = new Builder(MockCallbackQuery)
           .with({
             data: '/test callback',

@@ -7,6 +7,7 @@ module.exports = {
     'plugin:jest/style',
     'plugin:prettier/recommended',
   ],
+  ignorePatterns: ['test/**/*.setup.ts'],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -14,7 +15,7 @@ module.exports = {
   overrides: [
     {
       parser: '@typescript-eslint/parser',
-      files: ['*.ts'],
+      files: ['src/**/*.ts'],
       extends: ['plugin:@typescript-eslint/recommended'],
       parserOptions: {
         project: ['./tsconfig.json'],
