@@ -33,4 +33,15 @@ export class Command {
   isCommand(commandWord: string): boolean {
     return commandWord.toLocaleLowerCase() === this.commandWord;
   }
+
+  toString() {
+    const parts = [
+      this.commandWord,
+      ...this.positionalArgs,
+      ...Object.entries(this.keywordArgs).map(
+        ([key, value]) => `-${key} ${value}`,
+      ),
+    ].filter(Boolean);
+    return `Command(${parts.join(' ')})`;
+  }
 }

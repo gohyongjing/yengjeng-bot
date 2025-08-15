@@ -1,4 +1,5 @@
 import { App } from '@core/app';
+import { ErrorService } from '@core/error/error.service';
 import { WebAppEvent } from '@core/googleAppsScript';
 import { LoggerService } from '@core/logger';
 import { TelegramService, isUpdate } from '@core/telegram';
@@ -35,15 +36,14 @@ function doGet(_e: WebAppEvent) {
  * @param e Web App event
  */
 function doPost(e: WebAppEvent) {
-  const loggerService = new LoggerService();
-  try {
+  const errorService = new ErrorService();
+
+  errorService.withErrorHandling(() => {
     const update = JSON.parse(e.postData.contents);
     if (!isUpdate(update)) {
-      loggerService.warn(`Not a telegram update! ${e.postData.contents}`);
+      throw new Error(`Not a telegram update! ${e.postData.contents}`);
     } else {
       new App().processUpdate(update);
     }
-  } catch (e) {
-    loggerService.error(e);
-  }
+  });
 }

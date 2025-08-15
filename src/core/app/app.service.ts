@@ -11,10 +11,13 @@ import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { Command } from '@core/util/command';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
+import { ErrorService } from '@core/error/error.service';
 
 export class App {
   loggerService: LoggerService = new LoggerService();
   telegramService: TelegramService = new TelegramService();
+  errorService: ErrorService = new ErrorService();
+
   services: AppService[] = [
     new BusService(),
     new FriendService(),
@@ -26,36 +29,41 @@ export class App {
   helpService: HelpService = new HelpService(this.services);
 
   processUpdate(update: Update) {
-    if (hasKey(update, 'message') || hasKey(update, 'callback_query')) {
-      const rawCommand = hasKey(update, 'message')
-        ? update.message.text
-        : update.callback_query.data;
-      const command = new Command(rawCommand ?? '');
-      for (const service of this.services) {
-        if (command.isCommand(service.APP_SERVICE_COMMAND_WORD)) {
-          try {
-            this.loggerService.info('Processing update...');
-            service.processUpdate(update);
+    try {
+      if (hasKey(update, 'message') || hasKey(update, 'callback_query')) {
+        const rawCommand = hasKey(update, 'message')
+          ? update.message.text
+          : update.callback_query.data;
+        const command = new Command(rawCommand ?? '');
+        for (const service of this.services) {
+          if (command.isCommand(service.APP_SERVICE_COMMAND_WORD)) {
+            this.errorService.withErrorHandling(() => {
+              this.loggerService.info('Processing update...');
+              service.processUpdate(update);
+            });
             return;
-          } catch (e: unknown) {
-            void this.handleError(update, e);
           }
         }
+        this.helpService.processUpdate(update);
+      } else {
+        this.loggerService.info(
+          `Update handler for this update not implemented: ${JSON.stringify(
+            update,
+          )}`,
+        );
       }
-      this.helpService.processUpdate(update);
-    } else {
-      this.loggerService.info(
-        `Update handler for this update not implemented: ${JSON.stringify(
-          update,
-        )}`,
-      );
+    } catch (e) {
+      this.handleError(update, e);
     }
   }
 
-  handleError(update: Update, error: unknown) {
-    this.loggerService.error(`App failed to process command`);
+  private handleError(update: Update, error: unknown) {
     this.loggerService.error(
-      `App failed to process command: ${JSON.stringify(error)} for update ${JSON.stringify(update)}`,
+      `App failed to process update \n
+      Error: ${error} \n
+      Message: ${hasKey(error, 'message') ? error.message : ''} \n
+      Stack: ${hasKey(error, 'stack') ? error.stack : ''} \n
+      Update: ${JSON.stringify(update)}`,
     );
     if (hasKey(update, 'message') || hasKey(update, 'callback_query')) {
       const chatId = hasKey(update, 'message')
@@ -65,7 +73,7 @@ export class App {
         TelegramService.sendMessage({
           chatId,
           markdown: new MarkdownBuilder(
-            'An unexpected error occurred while processing your command. Please try again later and if the problem persists, please contact support.',
+            'An unexpected error has happened! Please try again later and contact Yong Jing if the problem persists!',
           ),
         });
       }

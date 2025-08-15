@@ -9,6 +9,7 @@ import { MockSheet } from './sheet.mock';
 import { MockSpreadsheet } from './spreadsheet.mock';
 
 export const MockSpreadsheetApp: GoogleAppsScript.Spreadsheet.SpreadsheetApp = {
+  Dimension: { COLUMNS: 0, ROWS: 1 },
   create: (
     _name: string,
     _rows?: GoogleAppsScript.Integer,

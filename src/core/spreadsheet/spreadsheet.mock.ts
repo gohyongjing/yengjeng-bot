@@ -117,13 +117,9 @@ export const createMockSpreadsheetApp = (
             getNumRows: () => numRows,
             getNumColumns: () => numCols,
             deleteCells: (
-              // shiftDimension: GoogleAppsScript.Spreadsheet.Dimension,
-              shiftDimension: unknown,
+              shiftDimension: GoogleAppsScript.Spreadsheet.Dimension,
             ) => {
-              if (
-                // shiftDimension === GoogleAppsScript.Spreadsheet.Dimension.ROWS
-                shiftDimension === 'ROWS'
-              ) {
+              if (shiftDimension === MockSpreadsheetApp.Dimension.ROWS) {
                 if (rowIndex >= 0 && rowIndex < data.length) {
                   data.splice(rowIndex, numRows);
                 }
