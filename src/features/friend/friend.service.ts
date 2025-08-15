@@ -46,7 +46,7 @@ export class FriendService extends AppService {
     return '*FRIEND*\nFRIEND ADD <username>: Send or accept a friend request\nFRIEND REMOVE <username>: Remove friend or reject/cancel request\nFRIEND LIST: View your friends list';
   }
 
-  override async processCommand(
+  override processCommand(
     command: Command,
     from: TelegramUser,
     chatId: number,
@@ -66,7 +66,7 @@ export class FriendService extends AppService {
         );
         return;
       }
-      await this.addFriend(from, chatId, otherUserName);
+      this.addFriend(from, chatId, otherUserName);
     } else if (subCommand === 'REMOVE') {
       const otherUserName = command.positionalArgs[1];
       if (!otherUserName) {
@@ -76,7 +76,7 @@ export class FriendService extends AppService {
         );
         return;
       }
-      await this.removeFriend(from, chatId, otherUserName);
+      this.removeFriend(from, chatId, otherUserName);
     } else {
       this.sendMessage(
         chatId,
@@ -85,11 +85,11 @@ export class FriendService extends AppService {
     }
   }
 
-  private async addFriend(
+  private addFriend(
     from: TelegramUser,
     chatId: number,
     otherUserName: string,
-  ): Promise<void> {
+  ): void {
     const senderUser = this.userData.getUser({ userId: from.id });
     if (!senderUser) {
       this.sendMessage(
@@ -192,11 +192,11 @@ export class FriendService extends AppService {
     this.sendFriendRequestNotification(from, otherUser, chatId);
   }
 
-  private async removeFriend(
+  private removeFriend(
     from: TelegramUser,
     chatId: number,
     otherUserName: string,
-  ): Promise<void> {
+  ): void {
     const senderUser = this.userData.getUser({ userId: from.id });
     if (!senderUser) {
       this.sendMessage(

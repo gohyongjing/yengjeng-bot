@@ -13,7 +13,7 @@ export abstract class AppService {
 
   abstract help(): string;
 
-  async processUpdate(update: Update): Promise<void> {
+  processUpdate(update: Update): void {
     if (hasKey(update, 'message')) {
       this.processMessage(update.message);
     } else if (hasKey(update, 'callback_query')) {

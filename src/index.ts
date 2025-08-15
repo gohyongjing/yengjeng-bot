@@ -41,9 +41,7 @@ function doPost(e: WebAppEvent) {
     if (!isUpdate(update)) {
       loggerService.warn(`Not a telegram update! ${e.postData.contents}`);
     } else {
-      new App().processUpdate(update).catch((e) => {
-        loggerService.error(e);
-      });
+      new App().processUpdate(update);
     }
   } catch (e) {
     loggerService.error(e);

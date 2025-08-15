@@ -25,7 +25,7 @@ export class App {
   ];
   helpService: HelpService = new HelpService(this.services);
 
-  async processUpdate(update: Update) {
+  processUpdate(update: Update) {
     if (hasKey(update, 'message') || hasKey(update, 'callback_query')) {
       const rawCommand = hasKey(update, 'message')
         ? update.message.text
@@ -35,16 +35,14 @@ export class App {
         if (command.isCommand(service.APP_SERVICE_COMMAND_WORD)) {
           try {
             this.loggerService.info('Processing update...');
-            await service.processUpdate(update).catch((e) => {
-              void this.handleError(update, e);
-            });
+            service.processUpdate(update);
             return;
-          } catch (e) {
+          } catch (e: unknown) {
             void this.handleError(update, e);
           }
         }
       }
-      await this.helpService.processUpdate(update);
+      this.helpService.processUpdate(update);
     } else {
       this.loggerService.info(
         `Update handler for this update not implemented: ${JSON.stringify(
@@ -54,7 +52,7 @@ export class App {
     }
   }
 
-  async handleError(update: Update, error: unknown) {
+  handleError(update: Update, error: unknown) {
     this.loggerService.error(`App failed to process command`);
     this.loggerService.error(
       `App failed to process command: ${JSON.stringify(error)} for update ${JSON.stringify(update)}`,
