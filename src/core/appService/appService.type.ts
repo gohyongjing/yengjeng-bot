@@ -14,6 +14,7 @@ export abstract class AppService {
   abstract help(): string;
 
   processUpdate(update: Update): void {
+    //TODO: Move to app service
     if (hasKey(update, 'message')) {
       this.processMessage(update.message);
     } else if (hasKey(update, 'callback_query')) {
