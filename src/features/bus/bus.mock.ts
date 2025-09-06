@@ -1,5 +1,6 @@
 import { MockHTTPResponse, MockUrlFetchApp } from '@core/googleAppsScript';
 import { Builder } from '@core/util/builder';
+import { MockTelegramUrlFetchApp } from '@core/telegram/telegram.mock';
 import {
   BusArrivalResponse,
   BusDetails,
@@ -94,5 +95,18 @@ export const MockLTAUrlFetchApp = new Builder(MockUrlFetchApp)
         return response;
       },
     ),
+  })
+  .build();
+
+export const MockBusFeatureUrlFetchApp = new Builder(MockUrlFetchApp)
+  .with({
+    fetch: (url) => {
+      if (url.includes('datamall2.mytransport.sg')) {
+        return MockLTAUrlFetchApp.fetch(url);
+      } else if (url.includes('api.telegram.org/bot')) {
+        return MockTelegramUrlFetchApp.fetch(url);
+      }
+      return MockUrlFetchApp.fetch(url);
+    },
   })
   .build();

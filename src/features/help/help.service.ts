@@ -40,7 +40,11 @@ export class HelpService extends AppService {
     }
   }
 
-  override processCommand(command: Command, from: User, chatId: number): void {
+  override processCommand(
+    _command: Command,
+    _from: User,
+    chatId: number,
+  ): void {
     const helpMessages = [this.help()].concat(
       this.services.map((service) => service.help()),
     );

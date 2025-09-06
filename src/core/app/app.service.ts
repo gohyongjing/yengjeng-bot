@@ -1,9 +1,7 @@
 import { LoggerService } from '@core/logger';
 import { TelegramService, Update, User } from '@core/telegram';
 import { hasKey } from '@core/util/predicates';
-import { BusService } from '@features/bus';
 import { FriendService } from '@features/friend';
-import { GreetingService } from '@features/greeting';
 import { HelpService } from '@features/help';
 import { ScrabbleService } from '@features/scrabble';
 import { UserService } from '@features/user';
@@ -11,10 +9,11 @@ import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { ErrorService } from '@core/error/error.service';
-import { handleCommand } from '@core/util/commandHandlerBuilder/commandHandlerBuilder.util';
+import { handleCommand } from '@core/util/commandHandler/commandHandler.util';
 import { CommandV2 } from '@core/util/commandV2';
-import { greetingFeature } from '@features/greeting/greeting.serviceV2';
-import { Feature } from '@core/util/commandHandlerBuilder/types';
+import { Feature } from '@core/util/commandHandler/types';
+import { busFeature } from '@features/bus';
+import { greetingFeature } from '@features/greeting';
 
 export class App {
   loggerService: LoggerService = new LoggerService();
@@ -22,15 +21,13 @@ export class App {
   errorService: ErrorService = new ErrorService();
 
   services: AppService[] = [
-    new BusService(),
     new FriendService(),
-    new GreetingService(),
     new ScrabbleService(),
     new UserService(),
     new VersionService(),
   ];
 
-  features: Feature[] = [greetingFeature];
+  features: Feature[] = [greetingFeature, busFeature];
 
   helpService: HelpService = new HelpService(this.services);
 
@@ -40,17 +37,20 @@ export class App {
       if (!commandV2) {
         return;
       }
-      const service = this.getService(commandV2);
       const user = this.getUser(update);
       const chatId = this.getChatId(update);
       if (!user || !chatId) {
         return;
       }
 
-      const feature = this.getFeature(commandV2);
+      const commandWord = commandV2.nextArg();
+      const feature = this.getFeature(commandWord);
       if (feature) {
-        handleCommand(feature, commandV2, user, chatId);
-      } else if (service) {
+        return handleCommand(feature, commandV2, user, chatId);
+      }
+
+      const service = this.getService(commandWord);
+      if (service) {
         service.processUpdate(update);
       } else {
         this.helpService.processUpdate(update);
@@ -60,7 +60,6 @@ export class App {
     }
   }
 
-  //TODO: Move to utils so that feature can simply take in update
   getCommand(update: Update): CommandV2 | null {
     if (hasKey(update, 'message')) {
       const text = update.message.text;
@@ -81,8 +80,7 @@ export class App {
     return null;
   }
 
-  getService(command: CommandV2): AppService | null {
-    const commandWord = command.nextArg();
+  getService(commandWord: string | null): AppService | null {
     if (!commandWord) {
       return null;
     }
@@ -93,8 +91,7 @@ export class App {
     );
   }
 
-  getFeature(command: CommandV2): Feature | null {
-    const commandWord = command.nextArg();
+  getFeature(commandWord: string | null): Feature | null {
     if (!commandWord) {
       return null;
     }

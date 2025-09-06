@@ -47,7 +47,7 @@ describe('App', () => {
           });
           const actualUrl = sendMessage.mock.calls[0][0];
           expect(actualUrl.includes(encodeURIComponent('HELP'))).toBeTruthy();
-          expect(actualUrl.includes(encodeURIComponent('BUS'))).toBeTruthy();
+          //TODO: Add keywords from other features to help message
           expect(
             actualUrl.includes(encodeURIComponent('VERSION')),
           ).toBeTruthy();

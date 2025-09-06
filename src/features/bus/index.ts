@@ -1,1 +1,1 @@
-export { BusService } from './bus.service';
+export { busFeature } from './feature';

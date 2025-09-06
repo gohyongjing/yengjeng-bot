@@ -26,8 +26,10 @@ export class BusData {
     ]);
   }
 
-  readLastBusStopQuery(userId: number) {
+  readLastBusStopQuery(userId: number): string | null {
     const data = this.spreadsheetService.readRow(1, userId.toString());
-    return data ? data[2] : null;
+    return data && (typeof data[2] === 'string' || typeof data[2] === 'number')
+      ? data[2].toString()
+      : null;
   }
 }
