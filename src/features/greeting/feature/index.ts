@@ -1,10 +1,11 @@
 import { Feature } from '@core/util/commandHandler/types';
 import { greetUser } from './service';
+import { constants } from '../greeting.constants';
 
 export const greetingFeature: Feature = {
-  commandWord: 'start',
-  description: "Hello! I'm Yeng Jeng Bot!",
+  commandWord: constants.FEATURE_COMMAND_WORD,
+  description: constants.FEATURE_DESCRIPTION,
   button: null,
-  help: 'Start using Yeng Jeng bot :)',
+  help: constants.FEATURE_HELP,
   handler: greetUser,
 };
