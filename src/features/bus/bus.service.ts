@@ -13,10 +13,19 @@ import { BusConfig } from './bus.config';
 import { hasKey } from '@core/util/predicates';
 
 const TABLE_HEADERS = [
-  ['Bus No', 'Next Bus', '2nd Bus', '3rd Bus'],
-  ['', '(mins)', '(mins)', '(mins)'],
+  [
+    constants.TABLE_HEADER_BUS_NO,
+    constants.TABLE_HEADER_NEXT_BUS,
+    constants.TABLE_HEADER_2ND_BUS,
+    constants.TABLE_HEADER_3RD_BUS,
+  ],
+  [
+    '',
+    constants.TABLE_HEADER_MINS,
+    constants.TABLE_HEADER_MINS,
+    constants.TABLE_HEADER_MINS,
+  ],
 ];
-const TABLE_COLUMN_WIDTH = 8;
 
 export function getBusArrivals(
   busStopNo: string,
@@ -26,11 +35,11 @@ export function getBusArrivals(
   loggerService.info(`Fetching bus arrivals for bus stop ${busStopNo}`);
   const options: Options = {
     headers: {
-      AccountKey: configService.get('LTA_ACCOUNT_KEY'),
+      [constants.API_HEADER_ACCOUNT_KEY]: configService.get('LTA_ACCOUNT_KEY'),
     },
   };
   const result = UrlFetchService.fetch(
-    `https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival?BusStopCode=${busStopNo}`,
+    `${constants.API_BASE_URL}?BusStopCode=${busStopNo}`,
     options,
   );
   if (hasKey(result, 'Ok')) {
@@ -54,7 +63,14 @@ export function sendBusArrivalTimings(
     chatId,
     markdown: response,
     replyMarkup: {
-      inline_keyboard: [[{ text: '🔄 Refresh', callback_data: '/bus prev' }]],
+      inline_keyboard: [
+        [
+          {
+            text: constants.REFRESH_BUTTON_TEXT,
+            callback_data: constants.REFRESH_BUTTON_CALLBACK,
+          },
+        ],
+      ],
     },
   });
 }
@@ -69,7 +85,9 @@ function formatBusArrivalHeader(
     return results.join('\n');
   }
 
-  results.push(`🚍 BUS STOP ${busArrivalResponse.BusStopCode}`);
+  results.push(
+    `${constants.BUS_STOP_PREFIX} ${busArrivalResponse.BusStopCode}`,
+  );
 
   if (busArrivalResponse.Services.length === 0) {
     results.push(
@@ -78,7 +96,10 @@ function formatBusArrivalHeader(
   } else {
     for (const row of TABLE_HEADERS) {
       results.push(
-        '|' + row.map((cell) => cell.padStart(TABLE_COLUMN_WIDTH)).join('|'),
+        '|' +
+          row
+            .map((cell) => cell.padStart(constants.TABLE_COLUMN_WIDTH))
+            .join('|'),
       );
     }
   }
@@ -98,16 +119,16 @@ function formatBusArrivalTimings(
   });
   const results: string[] = [];
   for (const service of busServiceDetails) {
-    const serviceNo = service.ServiceNo.padStart(TABLE_COLUMN_WIDTH);
+    const serviceNo = service.ServiceNo.padStart(constants.TABLE_COLUMN_WIDTH);
     const nextBusDuration = getWaitingTime(
       service.NextBus.EstimatedArrival,
-    ).padStart(TABLE_COLUMN_WIDTH);
+    ).padStart(constants.TABLE_COLUMN_WIDTH);
     const nextBusDuration2 = getWaitingTime(
       service.NextBus2.EstimatedArrival,
-    ).padStart(TABLE_COLUMN_WIDTH);
+    ).padStart(constants.TABLE_COLUMN_WIDTH);
     const nextBusDuration3 = getWaitingTime(
       service.NextBus3.EstimatedArrival,
-    ).padStart(TABLE_COLUMN_WIDTH);
+    ).padStart(constants.TABLE_COLUMN_WIDTH);
     results.push(
       `|${serviceNo}|${nextBusDuration}|${nextBusDuration2}|${nextBusDuration3}`,
     );
@@ -121,7 +142,7 @@ function formatBusArrivalTimings(
  */
 function getWaitingTime(estimatedArrival: string): string {
   if (estimatedArrival === '') {
-    return '\\-';
+    return constants.EMPTY_WAITING_TIME;
   }
   return Math.max(
     Math.floor(

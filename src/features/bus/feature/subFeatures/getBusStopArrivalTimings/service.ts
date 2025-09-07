@@ -4,6 +4,7 @@ import { CommandV2 } from '@core/util/commandV2';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { busStopIdParameter } from './parameters';
 import { BusData } from '@features/bus/bus.data';
+import { constants } from '@features/bus/bus.constants';
 import {
   getBusArrivals,
   sendBusArrivalTimings,
@@ -21,7 +22,7 @@ export function getBusStopArrivalTimings(
 
   TelegramService.sendMessage({
     chatId,
-    markdown: new MarkdownBuilder('Gimme a sec, getting the bus timings'),
+    markdown: new MarkdownBuilder(constants.LOADING_MESSAGE),
   });
 
   const busArrivals = getBusArrivals(busStopId);
@@ -29,7 +30,7 @@ export function getBusStopArrivalTimings(
 
   new BusData().updateLastBusStopQuery(
     chatId,
-    from.first_name ?? 'Unknown',
+    from.first_name ?? constants.DEFAULT_USER_NAME,
     busStopId,
   );
 }

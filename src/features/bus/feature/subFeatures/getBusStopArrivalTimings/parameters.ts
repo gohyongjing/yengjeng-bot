@@ -3,7 +3,7 @@ import { constants } from '@features/bus/bus.constants';
 
 export const busStopIdParameter: Parameter<string> = {
   name: 'busStopId',
-  helpMessage: 'Enter the bus stop ID to get the bus arrival timings for:', //TODO: Move to constants
+  helpMessage: constants.PARAM_BUS_STOP_ID_HELP,
   processor: (value) => {
     const isValidBusStopId = /^\d+$/.test(value);
     if (!isValidBusStopId) {

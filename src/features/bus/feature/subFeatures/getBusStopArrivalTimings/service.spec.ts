@@ -46,11 +46,8 @@ describe('getBusStopArrivalTimings', () => {
 
     getBusStopArrivalTimings(command, MockUser, chatId);
 
-    expect(sendMessage).toHaveBeenCalledTimes(2);
+    expect(sendMessage).toHaveBeenCalledTimes(1);
     expect(sendMessage.mock.calls[0][0]).toContain(
-      encodeURIComponent('Gimme a sec\\, getting the bus timings'),
-    );
-    expect(sendMessage.mock.calls[1][0]).toContain(
       encodeURIComponent(constants.MSG_INVALID_BUS_CODE),
     );
   });

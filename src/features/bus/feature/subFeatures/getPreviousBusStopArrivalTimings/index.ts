@@ -1,10 +1,14 @@
 import { Feature } from '@core/util/commandHandler/types';
 import { getPreviousBusStopArrivalTimings } from './service';
+import { constants } from '../../../bus.constants';
 
 export const getPreviousBusStopArrivalTimingsFeature: Feature = {
-  commandWord: 'prev',
-  description: 'Get bus arrival timings of the previously requested bus stop',
-  button: { text: '🔄 Refresh Previous Bus Stop', callback_data: '/bus prev' },
-  help: 'Get bus arrival timings of the previously requested bus stop',
+  commandWord: constants.PREV_COMMAND_WORD,
+  description: constants.PREV_DESCRIPTION,
+  button: {
+    text: constants.PREV_BUTTON_TEXT,
+    callback_data: constants.PREV_BUTTON_CALLBACK,
+  },
+  help: constants.PREV_HELP,
   handler: getPreviousBusStopArrivalTimings,
 };
