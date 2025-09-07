@@ -1,6 +1,6 @@
-import { Feature } from '@core/util/commandHandler/types';
+import { Feature } from '@features/command/types';
 import { getPreviousBusStopArrivalTimings } from './service';
-import { constants } from '../../../bus.constants';
+import { constants } from '@features/bus/bus.constants';
 
 export const getPreviousBusStopArrivalTimingsFeature: Feature = {
   commandWord: constants.PREV_COMMAND_WORD,

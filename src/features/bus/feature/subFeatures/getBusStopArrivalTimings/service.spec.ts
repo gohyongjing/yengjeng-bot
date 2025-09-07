@@ -4,7 +4,7 @@ import {
   sendMessage,
   MockUser,
 } from '@core/telegram/telegram.mock';
-import { CommandV2 } from '@core/util/commandV2';
+import { CommandV2 } from '@features/command/types/command';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
 import { getBusStopArrivalTimings } from './service';
 import { constants } from '../../../bus.constants';

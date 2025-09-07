@@ -1,6 +1,6 @@
 import { TelegramService, User } from '@core/telegram';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
-import { CommandV2 } from '@core/util/commandV2';
+import { CommandV2 } from '@features/command/types/command';
 import { UserService } from '@features/user';
 import { constants } from '../greeting.constants';
 

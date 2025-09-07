@@ -1,4 +1,4 @@
-import { Parameter } from '@core/util/commandHandler/types';
+import { Parameter } from '@features/command/types';
 import { constants } from '@features/bus/bus.constants';
 
 export const busStopIdParameter: Parameter<string> = {

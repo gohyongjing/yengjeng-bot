@@ -4,9 +4,9 @@ import {
   sendMessage,
   MockUser,
 } from '@core/telegram/telegram.mock';
-import { CommandV2 } from '@core/util/commandV2';
+import { CommandV2 } from '@features/command/types/command';
 import { createMockSpreadsheetApp } from '@core/spreadsheet/spreadsheet.mock';
-import { handleCommand } from '@core/util/commandHandler/commandHandler.util';
+import { handleCommand } from '@features/command/command.service';
 import { busFeature } from './index';
 import { MockBusFeatureUrlFetchApp } from '../bus.mock';
 

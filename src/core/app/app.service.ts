@@ -9,11 +9,11 @@ import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { ErrorService } from '@core/error/error.service';
-import { handleCommand } from '@core/util/commandHandler/commandHandler.util';
-import { CommandV2 } from '@core/util/commandV2';
-import { Feature } from '@core/util/commandHandler/types';
+import { handleCommand } from '@features/command/command.service';
 import { busFeature } from '@features/bus';
 import { greetingFeature } from '@features/greeting';
+import { Feature } from '@features/command/types/feature';
+import { CommandV2 } from '@features/command/types/command';
 
 export class App {
   loggerService: LoggerService = new LoggerService();

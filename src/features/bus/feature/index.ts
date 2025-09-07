@@ -1,4 +1,4 @@
-import { Feature } from '@core/util/commandHandler/types';
+import { Feature } from '@features/command/types';
 import { getPreviousBusStopArrivalTimingsFeature } from './subFeatures/getPreviousBusStopArrivalTimings';
 import { getBusStopArrivalTimingsFeature } from './subFeatures/getBusStopArrivalTimings';
 import { constants } from '../bus.constants';

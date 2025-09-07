@@ -1,4 +1,4 @@
-import { Feature } from '@core/util/commandHandler/types';
+import { Feature } from '@features/command/types';
 import { greetUser } from './service';
 import { constants } from '../greeting.constants';
 

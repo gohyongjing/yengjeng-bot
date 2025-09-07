@@ -1,6 +1,6 @@
 import { User, TelegramService } from '@core/telegram';
-import { getArg } from '@core/util/commandHandler/commandHandler.util';
-import { CommandV2 } from '@core/util/commandV2';
+import { getArg } from '@features/command/command.service';
+import { CommandV2 } from '@features/command/types';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { busStopIdParameter } from './parameters';
 import { BusData } from '@features/bus/bus.data';

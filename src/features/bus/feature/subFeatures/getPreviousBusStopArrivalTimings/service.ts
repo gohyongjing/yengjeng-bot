@@ -1,5 +1,5 @@
 import { User } from '@core/telegram';
-import { CommandV2 } from '@core/util/commandV2';
+import { CommandV2 } from '@features/command/types';
 import { constants } from '@features/bus/bus.constants';
 import { BusData } from '@features/bus/bus.data';
 import {
