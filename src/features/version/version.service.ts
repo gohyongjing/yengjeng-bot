@@ -7,10 +7,11 @@ export class VersionService extends AppService {
   override APP_SERVICE_COMMAND_WORD = 'version';
 
   major: number = 0;
-  minor: number = 4;
+  minor: number = 5;
   patch: number = 0;
 
   changeLog = {
+    '0.5.0': ['Add buttons for bus features'],
     '0.4.0': ['Add friend feature'],
     '0.3.0': ['Add inline keyboard responses'],
     '0.2.0': ['Add Scrabble word guessing game'],

@@ -9,7 +9,10 @@ import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { ErrorService } from '@core/error/error.service';
-import { handleCommand } from '@features/command/command.service';
+import {
+  handleCommand,
+  parseCommandWithState,
+} from '@features/command/command.service';
 import { busFeature } from '@features/bus';
 import { greetingFeature } from '@features/greeting';
 import { Feature } from '@features/command/types/feature';
@@ -33,13 +36,13 @@ export class App {
 
   processUpdate(update: Update) {
     try {
-      const commandV2 = this.getCommand(update);
-      if (!commandV2) {
-        return;
-      }
       const user = this.getUser(update);
       const chatId = this.getChatId(update);
       if (!user || !chatId) {
+        return;
+      }
+      const commandV2 = this.getCommand(update, user);
+      if (!commandV2) {
         return;
       }
 
@@ -60,21 +63,21 @@ export class App {
     }
   }
 
-  getCommand(update: Update): CommandV2 | null {
+  getCommand(update: Update, user: User): CommandV2 | null {
     if (hasKey(update, 'message')) {
       const text = update.message.text;
       if (!text) {
         this.loggerService.warn('Update message text not specified');
         return null;
       }
-      return new CommandV2(text);
+      return parseCommandWithState(new CommandV2(text), user.id);
     } else if (hasKey(update, 'callback_query')) {
       const data = update.callback_query.data;
       if (!data) {
         this.loggerService.warn('Update callback query data not specified');
         return null;
       }
-      return new CommandV2(data);
+      return parseCommandWithState(new CommandV2(data), user.id);
     }
     this.loggerService.warn('Unable to get command from unhandled update type');
     return null;
