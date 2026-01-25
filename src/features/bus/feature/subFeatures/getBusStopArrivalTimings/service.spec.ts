@@ -28,15 +28,26 @@ describe('getBusStopArrivalTimings', () => {
     getBusStopArrivalTimings(command, MockUser, chatId);
 
     expect(sendMessage).toHaveBeenCalledTimes(2);
-    expect(sendMessage.mock.calls[0][0]).toContain(
-      encodeURIComponent('Gimme a sec\\, getting the bus timings'),
+    const firstCallOptions = sendMessage.mock.calls[0][1];
+    expect(firstCallOptions).toBeDefined();
+    if (!firstCallOptions) throw new Error('Options should be defined');
+    const firstPayload = JSON.parse(firstCallOptions.payload?.toString() ?? '');
+    expect(firstPayload.text).toContain(
+      'Gimme a sec\\, getting the bus timings',
     );
-    expect(sendMessage.mock.calls[1][0]).toContain('83139');
-    expect(sendMessage.mock.calls[1][0]).toContain('15');
-    expect(sendMessage.mock.calls[1][0]).toContain('150');
-    expect(sendMessage.mock.calls[1][0]).toContain('155');
-    expect(sendMessage.mock.calls[1][0]).toContain('Refresh');
-    expect(sendMessage.mock.calls[1][0]).toContain('inline_keyboard');
+
+    const secondCallOptions = sendMessage.mock.calls[1][1];
+    expect(secondCallOptions).toBeDefined();
+    if (!secondCallOptions) throw new Error('Options should be defined');
+    const secondPayload = JSON.parse(
+      secondCallOptions.payload?.toString() ?? '',
+    );
+    expect(secondPayload.text).toContain('83139');
+    expect(secondPayload.text).toContain('15');
+    expect(secondPayload.text).toContain('150');
+    expect(secondPayload.text).toContain('155');
+    expect(JSON.stringify(secondPayload.reply_markup)).toContain('Refresh');
+    expect(secondPayload.reply_markup).toHaveProperty('inline_keyboard');
     expect(canParseMarkdownV2).toHaveBeenCalledTimes(2);
   });
 
@@ -47,9 +58,11 @@ describe('getBusStopArrivalTimings', () => {
     getBusStopArrivalTimings(command, MockUser, chatId);
 
     expect(sendMessage).toHaveBeenCalledTimes(1);
-    expect(sendMessage.mock.calls[0][0]).toContain(
-      encodeURIComponent(constants.MSG_INVALID_BUS_CODE),
-    );
+    const options = sendMessage.mock.calls[0][1];
+    expect(options).toBeDefined();
+    if (!options) throw new Error('Options should be defined');
+    const payload = JSON.parse(options.payload?.toString() ?? '');
+    expect(payload.text).toContain(constants.MSG_INVALID_BUS_CODE);
   });
 
   it('should return no buses found message for empty bus stop', () => {
@@ -59,11 +72,20 @@ describe('getBusStopArrivalTimings', () => {
     getBusStopArrivalTimings(command, MockUser, chatId);
 
     expect(sendMessage).toHaveBeenCalledTimes(2);
-    expect(sendMessage.mock.calls[0][0]).toContain(
-      encodeURIComponent('Gimme a sec\\, getting the bus timings'),
+    const firstCallOptions = sendMessage.mock.calls[0][1];
+    expect(firstCallOptions).toBeDefined();
+    if (!firstCallOptions) throw new Error('Options should be defined');
+    const firstPayload = JSON.parse(firstCallOptions.payload?.toString() ?? '');
+    expect(firstPayload.text).toContain(
+      'Gimme a sec\\, getting the bus timings',
     );
-    expect(sendMessage.mock.calls[1][0]).toContain(
-      encodeURIComponent(constants.MSG_NO_BUSES),
+
+    const secondCallOptions = sendMessage.mock.calls[1][1];
+    expect(secondCallOptions).toBeDefined();
+    if (!secondCallOptions) throw new Error('Options should be defined');
+    const secondPayload = JSON.parse(
+      secondCallOptions.payload?.toString() ?? '',
     );
+    expect(secondPayload.text).toContain(constants.MSG_NO_BUSES);
   });
 });

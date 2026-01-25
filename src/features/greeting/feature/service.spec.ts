@@ -31,18 +31,21 @@ describe('greetUser', () => {
     greetUser(command, MockUser, chatId);
 
     expect(sendMessage).toHaveBeenCalledTimes(1);
-    expect(sendMessage.mock.calls[0][0]).toContain('Hello');
-    expect(sendMessage.mock.calls[0][0]).toContain(
-      encodeURIComponent(MockUser.first_name),
-    );
-    expect(sendMessage.mock.calls[0][0]).toContain(
-      encodeURIComponent('This is Yeng Jeng Bot'),
-    );
-    expect(sendMessage.mock.calls[0][0]).toContain('Bus');
-    expect(sendMessage.mock.calls[0][0]).toContain('Scrabble');
-    expect(sendMessage.mock.calls[0][0]).toContain('Help');
-    expect(sendMessage.mock.calls[0][0]).toContain('Version');
-    expect(sendMessage.mock.calls[0][0]).toContain('inline_keyboard');
+    const options = sendMessage.mock.calls[0][1];
+    expect(options).toBeDefined();
+    if (!options) throw new Error('Options should be defined');
+    const payload = JSON.parse(options.payload?.toString() ?? '');
+    const text = payload.text;
+    const inlineKeyboard = payload.reply_markup?.inline_keyboard;
+
+    expect(text).toContain('Hello');
+    expect(text).toContain(MockUser.first_name);
+    expect(text).toContain('This is Yeng Jeng Bot');
+    expect(inlineKeyboard).toBeDefined();
+    expect(JSON.stringify(inlineKeyboard)).toContain('Bus');
+    expect(JSON.stringify(inlineKeyboard)).toContain('Scrabble');
+    expect(JSON.stringify(inlineKeyboard)).toContain('Help');
+    expect(JSON.stringify(inlineKeyboard)).toContain('Version');
     expect(
       canParseMarkdownV2.mock.results.every((result) => result.value === true),
     ).toBeTruthy();

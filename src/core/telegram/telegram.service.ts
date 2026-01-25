@@ -7,7 +7,7 @@ import {
   User,
 } from './telegram.type';
 import { TelegramConfig } from './telegram.config';
-import { UrlFetchService } from '@core/urlFetch';
+import { Options, UrlFetchService } from '@core/urlFetch';
 import { hasKey } from '@core/util/predicates';
 import { LoggerService } from '@core/logger';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
@@ -19,9 +19,12 @@ export class TelegramService {
   private static webAppURL = TelegramService.configService.get('WEB_APP_URL');
   private static telegramURL = `https://api.telegram.org/bot${TelegramService.token}`;
 
-  private static fetchAndLog<T>(url: string): ResponseBody<T> {
+  private static fetchAndLog<T>(
+    url: string,
+    options?: Options,
+  ): ResponseBody<T> {
     TelegramService.loggerService.info('Fetching telegram response...');
-    const result = UrlFetchService.fetch(url);
+    const result = UrlFetchService.fetch(url, options);
     const contentText = hasKey(result, 'Ok')
       ? result.Ok.getContentText()
       : result.Err.getContentText();
@@ -47,14 +50,19 @@ export class TelegramService {
     markdown: MarkdownBuilder;
     replyMarkup?: ReplyKeyboardMarkup | InlineKeyboardMarkup | undefined;
   }): ResponseBody<Message> {
-    const encodedText = encodeURIComponent(markdown.build());
+    const url = `${TelegramService.telegramURL}/sendMessage`;
+    const payload = {
+      chat_id: chatId,
+      text: markdown.build(),
+      parse_mode: 'MarkdownV2',
+      ...(replyMarkup && { reply_markup: replyMarkup }),
+    };
 
-    const encodedMarkup = replyMarkup
-      ? encodeURIComponent(JSON.stringify(replyMarkup))
-      : '';
-
-    const url = `${TelegramService.telegramURL}/sendMessage?chat_id=${chatId}&text=${encodedText}&reply_markup=${encodedMarkup}&parse_mode=MarkdownV2`;
-    return TelegramService.fetchAndLog(url);
+    return TelegramService.fetchAndLog(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(payload),
+    });
   }
 
   /**

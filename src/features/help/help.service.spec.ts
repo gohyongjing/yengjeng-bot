@@ -49,17 +49,17 @@ describe('HelpService', () => {
 
         underTest.processMessage(message);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(actualUrl.includes(encodeURIComponent('HELP'))).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('Provides instructions')),
-        ).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('help message 1')),
-        ).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('second help message')),
-        ).toBeTruthy();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toContain('HELP');
+        expect(text).toContain('Provides instructions');
+        expect(text).toContain('help message 1');
+        expect(text).toContain('second help message');
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -77,17 +77,17 @@ describe('HelpService', () => {
 
         underTest.processMessage(message);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(actualUrl.includes(encodeURIComponent('HELP'))).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('Provides instructions')),
-        ).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('help message 1')),
-        ).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('second help message')),
-        ).toBeTruthy();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toContain('HELP');
+        expect(text).toContain('Provides instructions');
+        expect(text).toContain('help message 1');
+        expect(text).toContain('second help message');
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -107,17 +107,15 @@ describe('HelpService', () => {
 
         underTest.processMessage(message);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(actualUrl).toMatch(
-          new RegExp(
-            encodeURIComponent('.*don.*t understand.*what you just said.*'),
-          ),
-        );
-        expect(actualUrl).toMatch(
-          new RegExp(
-            encodeURIComponent('.*Please type HELP for more information.*'),
-          ),
-        );
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toMatch(/.*don.*t understand.*what you just said.*/);
+        expect(text).toMatch(/.*Please type HELP for more information.*/);
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -135,17 +133,15 @@ describe('HelpService', () => {
 
         underTest.processMessage(message);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(actualUrl).toMatch(
-          new RegExp(
-            encodeURIComponent('.*don.*t understand.*what you just said.*'),
-          ),
-        );
-        expect(actualUrl).toMatch(
-          new RegExp(
-            encodeURIComponent('.*Please type HELP for more information.*'),
-          ),
-        );
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toMatch(/.*don.*t understand.*what you just said.*/);
+        expect(text).toMatch(/.*Please type HELP for more information.*/);
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -175,17 +171,17 @@ describe('HelpService', () => {
       const command = new Command('/help');
       underTest.processCommand(command, MockUser, MockChat.id);
 
-      const actualUrl = sendMessage.mock.calls[0][0];
-      expect(actualUrl.includes(encodeURIComponent('HELP'))).toBeTruthy();
-      expect(
-        actualUrl.includes(encodeURIComponent('Provides instructions')),
-      ).toBeTruthy();
-      expect(
-        actualUrl.includes(encodeURIComponent('help message 1')),
-      ).toBeTruthy();
-      expect(
-        actualUrl.includes(encodeURIComponent('second help message')),
-      ).toBeTruthy();
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      const options = sendMessage.mock.calls[0][1];
+      expect(options).toBeDefined();
+      if (!options) throw new Error('Options should be defined');
+      const payload = JSON.parse(options.payload?.toString() ?? '');
+      const text = payload.text;
+
+      expect(text).toContain('HELP');
+      expect(text).toContain('Provides instructions');
+      expect(text).toContain('help message 1');
+      expect(text).toContain('second help message');
       expect(
         canParseMarkdownV2.mock.results.every(
           (result) => result.value === true,

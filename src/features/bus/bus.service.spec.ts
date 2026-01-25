@@ -60,10 +60,16 @@ describe('bus.service', () => {
       sendBusArrivalTimings(12345, MockBusArrivalResponseBody);
 
       expect(sendMessage).toHaveBeenCalledTimes(1);
-      expect(sendMessage.mock.calls[0][0]).toContain('12345');
-      expect(sendMessage.mock.calls[0][0]).toContain('1A');
-      expect(sendMessage.mock.calls[0][0]).toContain('Refresh');
-      expect(sendMessage.mock.calls[0][0]).toContain('inline_keyboard');
+      const options = sendMessage.mock.calls[0][1];
+      expect(options).toBeDefined();
+      if (!options) throw new Error('Options should be defined');
+      const payload = JSON.parse(options.payload?.toString() ?? '');
+      expect(payload.chat_id).toBe(12345);
+      expect(payload.text).toContain('1A');
+      expect(payload.reply_markup).toHaveProperty('inline_keyboard');
+      expect(payload.reply_markup.inline_keyboard[0][0].text).toContain(
+        'Refresh',
+      );
       expect(canParseMarkdownV2).toHaveBeenCalledTimes(1);
     });
 
@@ -75,9 +81,11 @@ describe('bus.service', () => {
       sendBusArrivalTimings(123456, emptyResponse);
 
       expect(sendMessage).toHaveBeenCalledTimes(1);
-      expect(sendMessage.mock.calls[0][0]).toContain(
-        encodeURIComponent(constants.MSG_NO_BUSES),
-      );
+      const options = sendMessage.mock.calls[0][1];
+      expect(options).toBeDefined();
+      if (!options) throw new Error('Options should be defined');
+      const payload = JSON.parse(options.payload?.toString() ?? '');
+      expect(payload.text).toContain(constants.MSG_NO_BUSES);
     });
 
     it('should handle invalid bus stop code', () => {
@@ -89,9 +97,11 @@ describe('bus.service', () => {
       sendBusArrivalTimings(123456, invalidResponse);
 
       expect(sendMessage).toHaveBeenCalledTimes(1);
-      expect(sendMessage.mock.calls[0][0]).toContain(
-        encodeURIComponent(constants.MSG_INVALID_BUS_CODE),
-      );
+      const options = sendMessage.mock.calls[0][1];
+      expect(options).toBeDefined();
+      if (!options) throw new Error('Options should be defined');
+      const payload = JSON.parse(options.payload?.toString() ?? '');
+      expect(payload.text).toContain(constants.MSG_INVALID_BUS_CODE);
     });
   });
 });

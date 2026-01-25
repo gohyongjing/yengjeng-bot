@@ -27,10 +27,14 @@ describe('App', () => {
             update_id: 1,
             message: new Builder(MockMessage).with({ text: '/start' }).build(),
           });
-          const actualUrl = sendMessage.mock.calls[0][0];
-          expect(
-            actualUrl.toLocaleLowerCase().includes(encodeURIComponent('hello')),
-          ).toBeTruthy();
+          expect(sendMessage).toHaveBeenCalledTimes(1);
+          const options = sendMessage.mock.calls[0][1];
+          expect(options).toBeDefined();
+          if (!options) throw new Error('Options should be defined');
+          const payload = JSON.parse(options.payload?.toString() ?? '');
+          const text = payload.text;
+
+          expect(text.toLowerCase()).toContain('hello');
           expect(
             canParseMarkdownV2.mock.results.every(
               (result) => result.value === true,
@@ -45,12 +49,16 @@ describe('App', () => {
             update_id: 1,
             message: new Builder(MockMessage).with({ text: '/help' }).build(),
           });
-          const actualUrl = sendMessage.mock.calls[0][0];
-          expect(actualUrl.includes(encodeURIComponent('HELP'))).toBeTruthy();
+          expect(sendMessage).toHaveBeenCalledTimes(1);
+          const options = sendMessage.mock.calls[0][1];
+          expect(options).toBeDefined();
+          if (!options) throw new Error('Options should be defined');
+          const payload = JSON.parse(options.payload?.toString() ?? '');
+          const text = payload.text;
+
+          expect(text).toContain('HELP');
           //TODO: Add keywords from other features to help message
-          expect(
-            actualUrl.includes(encodeURIComponent('VERSION')),
-          ).toBeTruthy();
+          expect(text).toContain('VERSION');
           expect(
             canParseMarkdownV2.mock.results.every(
               (result) => result.value === true,

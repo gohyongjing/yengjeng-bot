@@ -29,13 +29,15 @@ describe('UserService', () => {
         const command = new Command('/user profile');
         underTest.processCommand(command, MockUser, 123456);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(
-          actualUrl.includes(encodeURIComponent('User Profile')),
-        ).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent(MockUser.first_name)),
-        ).toBeTruthy();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toContain('User Profile');
+        expect(text).toContain(MockUser.first_name);
         expect(
           canParseMarkdownV2.mock.results.every(
             (result) => result.value === true,
@@ -55,12 +57,14 @@ describe('UserService', () => {
         const command = new Command('/user delete');
         underTest.processCommand(command, MockUser, 123456);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(
-          actualUrl.includes(
-            encodeURIComponent('Your user data has been deleted successfully'),
-          ),
-        ).toBeTruthy();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toContain('Your user data has been deleted successfully');
         expect(hasNoUserProfile(underTest)).toBeTruthy();
       });
 
@@ -68,12 +72,14 @@ describe('UserService', () => {
         const command = new Command('/user delete');
         underTest.processCommand(command, MockUser, 123456);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(
-          actualUrl.includes(
-            encodeURIComponent('Failed to delete your user data'),
-          ),
-        ).toBeTruthy();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toContain('Failed to delete your user data');
       });
     });
 
@@ -82,17 +88,17 @@ describe('UserService', () => {
         const command = new Command('/user unknown');
         underTest.processCommand(command, MockUser, 123456);
 
-        const actualUrl = sendMessage.mock.calls[0][0];
-        expect(
-          actualUrl.includes(
-            encodeURIComponent(
-              "Sorry\\, I don\\'t know how to handle this command",
-            ),
-          ),
-        ).toBeTruthy();
-        expect(
-          actualUrl.includes(encodeURIComponent('USER PROFILE')),
-        ).toBeTruthy();
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        const options = sendMessage.mock.calls[0][1];
+        expect(options).toBeDefined();
+        if (!options) throw new Error('Options should be defined');
+        const payload = JSON.parse(options.payload?.toString() ?? '');
+        const text = payload.text;
+
+        expect(text).toContain(
+          "Sorry\\, I don\\'t know how to handle this command",
+        );
+        expect(text).toContain('USER PROFILE');
       });
     });
   });
@@ -149,16 +155,20 @@ describe('UserService', () => {
       };
       underTest.updateProfile(updatedUser);
       underTest.processCommand(new Command('/user'), updatedUser, 789);
-      const actualUrl =
-        sendMessage.mock.calls[sendMessage.mock.calls.length - 1][0];
-      expect(actualUrl.includes(encodeURIComponent('Alice'))).toBeTruthy();
-      expect(actualUrl.includes(encodeURIComponent('Johnson'))).toBeTruthy();
-      expect(
-        actualUrl.includes(encodeURIComponent('alice\\_johnson')),
-      ).toBeTruthy();
-      expect(actualUrl.includes(encodeURIComponent('Bob'))).toBeFalsy();
-      expect(actualUrl.includes(encodeURIComponent('Smith'))).toBeFalsy();
-      expect(actualUrl.includes(encodeURIComponent('bob_smith'))).toBeFalsy();
+
+      const lastCallIndex = sendMessage.mock.calls.length - 1;
+      const options = sendMessage.mock.calls[lastCallIndex][1];
+      expect(options).toBeDefined();
+      if (!options) throw new Error('Options should be defined');
+      const payload = JSON.parse(options.payload?.toString() ?? '');
+      const text = payload.text;
+
+      expect(text).toContain('Alice');
+      expect(text).toContain('Johnson');
+      expect(text).toContain('alice\\_johnson');
+      expect(text).not.toContain('Bob');
+      expect(text).not.toContain('Smith');
+      expect(text).not.toContain('bob_smith');
     });
   });
 
@@ -176,16 +186,15 @@ describe('UserService', () => {
     const command = new Command('/user profile');
     underTest.processCommand(command, MockUser, 123456);
 
-    const actualUrl =
-      sendMessage.mock.calls[sendMessage.mock.calls.length - 1][0];
-    expect(
-      actualUrl.includes(encodeURIComponent('Your details are not found')),
-    ).toBeTruthy();
-    expect(
-      actualUrl.includes(
-        encodeURIComponent('Please use \\/start to register first'),
-      ),
-    ).toBeTruthy();
+    const lastCallIndex = sendMessage.mock.calls.length - 1;
+    const options = sendMessage.mock.calls[lastCallIndex][1];
+    expect(options).toBeDefined();
+    if (!options) throw new Error('Options should be defined');
+    const payload = JSON.parse(options.payload?.toString() ?? '');
+    const text = payload.text;
+
+    expect(text).toContain('Your details are not found');
+    expect(text).toContain('Please use \\/start to register first');
     return true;
   }
 });

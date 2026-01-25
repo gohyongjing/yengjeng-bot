@@ -100,13 +100,22 @@ export const MockLTAUrlFetchApp = new Builder(MockUrlFetchApp)
 
 export const MockBusFeatureUrlFetchApp = new Builder(MockUrlFetchApp)
   .with({
-    fetch: (url) => {
+    fetch: (
+      url: string,
+      params?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions,
+    ) => {
       if (url.includes('datamall2.mytransport.sg')) {
-        return MockLTAUrlFetchApp.fetch(url);
+        return params
+          ? MockLTAUrlFetchApp.fetch(url, params)
+          : MockLTAUrlFetchApp.fetch(url);
       } else if (url.includes('api.telegram.org/bot')) {
-        return MockTelegramUrlFetchApp.fetch(url);
+        return params
+          ? MockTelegramUrlFetchApp.fetch(url, params)
+          : MockTelegramUrlFetchApp.fetch(url);
       }
-      return MockUrlFetchApp.fetch(url);
+      return params
+        ? MockUrlFetchApp.fetch(url, params)
+        : MockUrlFetchApp.fetch(url);
     },
   })
   .build();

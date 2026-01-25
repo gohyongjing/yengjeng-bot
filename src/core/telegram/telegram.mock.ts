@@ -111,32 +111,52 @@ export const canParseMarkdownV2 = jest.fn((encodedText: string) => {
   return parenthesisCount === 0;
 });
 
-export const sendMessage = jest.fn((url: string): string => {
-  const textQuery = 'text=';
-  const startIndex = url.indexOf(textQuery) + textQuery.length;
-  const endIndex = url.indexOf('&', startIndex);
-  const text = url.substring(startIndex, endIndex);
+export const sendMessage = jest.fn(
+  (
+    url: string,
+    options?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions,
+  ): string => {
+    let text: string;
+    let chatId = MockChat.id;
 
-  if (canParseMarkdownV2(text)) {
+    if (options?.method === 'post' && typeof options.payload === 'string') {
+      try {
+        const payload = JSON.parse(options.payload);
+        text = payload.text || '';
+        chatId = payload.chat_id;
+      } catch {
+        text = '';
+      }
+    } else {
+      const textQuery = 'text=';
+      const startIndex = url.indexOf(textQuery) + textQuery.length;
+      const endIndex = url.indexOf('&', startIndex);
+      text = url.substring(startIndex, endIndex);
+    }
+
+    if (canParseMarkdownV2(text)) {
+      const responseBody: ResponseBody<Message> = {
+        ok: true,
+        result: new Builder(MockMessage)
+          .with({ text, chat: { ...MockChat, id: chatId } })
+          .build(),
+      };
+      return JSON.stringify(responseBody);
+    }
     const responseBody: ResponseBody<Message> = {
-      ok: true,
-      result: new Builder(MockMessage).with({ text }).build(),
+      ok: false,
+      description: 'invalid markdown',
     };
     return JSON.stringify(responseBody);
-  }
-  const responseBody: ResponseBody<Message> = {
-    ok: false,
-    description: 'invalid markdown',
-  };
-  return JSON.stringify(responseBody);
-});
+  },
+);
 
 export const MockTelegramUrlFetchApp = new Builder(MockUrlFetchApp)
   .with({
     fetch: jest.fn(
       (
         url: string,
-        _params?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions,
+        params?: GoogleAppsScript.URL_Fetch.URLFetchRequestOptions,
       ) => {
         const response = new Builder(MockHTTPResponse)
           .with({
@@ -146,7 +166,7 @@ export const MockTelegramUrlFetchApp = new Builder(MockUrlFetchApp)
               } else if (url.includes('/setWebhook')) {
                 return setWebhook();
               } else if (url.includes('/sendMessage')) {
-                return sendMessage(url);
+                return sendMessage(url, params);
               }
               return '';
             }),

@@ -28,11 +28,15 @@ describe('getPreviousBusStopArrivalTimings', () => {
     getPreviousBusStopArrivalTimings(command, MockUser, chatId);
 
     expect(sendMessage).toHaveBeenCalledTimes(1);
-    expect(sendMessage.mock.calls[0][0]).toContain(
-      constants.DEFAULT_BUS_STOP_ID,
-    );
-    expect(sendMessage.mock.calls[0][0]).toContain('Refresh');
-    expect(sendMessage.mock.calls[0][0]).toContain('inline_keyboard');
+    const options = sendMessage.mock.calls[0][1];
+    expect(options).toBeDefined();
+    if (!options) throw new Error('Options should be defined');
+    const payload = JSON.parse(options.payload?.toString() ?? '');
+    const text = payload.text;
+
+    expect(text).toContain(constants.DEFAULT_BUS_STOP_ID);
+    expect(payload.reply_markup).toHaveProperty('inline_keyboard');
+    expect(JSON.stringify(payload.reply_markup)).toContain('Refresh');
     expect(canParseMarkdownV2).toHaveBeenCalledTimes(1);
   });
 });
