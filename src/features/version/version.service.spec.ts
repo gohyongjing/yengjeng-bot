@@ -1,39 +1,10 @@
 import { VersionService } from './version.service';
-import {
-  MockTelegramUrlFetchApp,
-  MockUser,
-  sendMessage,
-} from '@core/telegram/telegram.mock';
-import { Command } from '@core/util/command';
 
 describe('VersionService', () => {
   let underTest: VersionService;
 
-  beforeAll(() => {
-    global.UrlFetchApp = MockTelegramUrlFetchApp;
-  });
-
   beforeEach(() => {
     underTest = new VersionService();
-  });
-
-  describe('processCommand', () => {
-    it('should return version number', () => {
-      const command = new Command('/version');
-      underTest.processCommand(command, MockUser, 123456);
-
-      expect(sendMessage).toHaveBeenCalledTimes(1);
-      const options = sendMessage.mock.calls[0][1];
-      expect(options).toBeDefined();
-      if (!options) throw new Error('Options should be defined');
-      const payload = JSON.parse(options.payload?.toString() ?? '');
-      const text = payload.text;
-
-      expect(text).toContain('Yeng Jeng Bot');
-      expect(text).toContain(`v${underTest.major.toString()}`);
-      expect(text).toContain(`.${underTest.minor.toString()}`);
-      expect(text).toContain(`.${underTest.patch.toString()}`);
-    });
   });
 
   describe('getVersion', () => {

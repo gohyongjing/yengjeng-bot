@@ -72,6 +72,7 @@ export function handleCommand(
       },
     });
     popArg(from.id);
+    return;
   }
 
   TelegramService.sendMessage({

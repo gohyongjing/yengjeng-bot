@@ -58,7 +58,6 @@ describe('App', () => {
 
           expect(text).toContain('HELP');
           //TODO: Add keywords from other features to help message
-          expect(text).toContain('VERSION');
           expect(
             canParseMarkdownV2.mock.results.every(
               (result) => result.value === true,

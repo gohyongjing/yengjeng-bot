@@ -5,7 +5,6 @@ import { FriendService } from '@features/friend';
 import { HelpService } from '@features/help';
 import { ScrabbleService } from '@features/scrabble';
 import { UserService } from '@features/user';
-import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { ErrorService } from '@core/error/error.service';
@@ -15,6 +14,7 @@ import {
 } from '@features/command/command.service';
 import { busFeature } from '@features/bus';
 import { greetingFeature } from '@features/greeting';
+import { versionFeature } from '@features/version';
 import { Feature } from '@features/command/types/feature';
 import { CommandV2 } from '@features/command/types/command';
 
@@ -27,10 +27,9 @@ export class App {
     new FriendService(),
     new ScrabbleService(),
     new UserService(),
-    new VersionService(),
   ];
 
-  features: Feature[] = [greetingFeature, busFeature];
+  features: Feature[] = [greetingFeature, busFeature, versionFeature];
 
   helpService: HelpService = new HelpService(this.services);
 
