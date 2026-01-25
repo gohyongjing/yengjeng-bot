@@ -84,4 +84,33 @@ describe('Command', () => {
       expect(underTest.keywordArgs['-k2']).toBe('v2');
     });
   });
+
+  describe('toString', () => {
+    it('returns correct string for command with only command word', () => {
+      const underTest = new Command('/test');
+      expect(underTest.toString()).toBe('Command(test)');
+    });
+
+    it('returns correct string for command with positional args', () => {
+      const underTest = new Command('/test arg1 arg2');
+      expect(underTest.toString()).toBe('Command(test arg1 arg2)');
+    });
+
+    it('returns correct string for command with keyword args', () => {
+      const underTest = new Command('/test -foo bar -baz qux');
+      expect(underTest.toString()).toBe('Command(test -foo bar -baz qux)');
+    });
+
+    it('returns correct string for command with both positional and keyword args', () => {
+      const underTest = new Command('/test arg1 -foo bar arg2 -baz qux');
+      expect(underTest.toString()).toBe(
+        'Command(test arg1 arg2 -foo bar -baz qux)',
+      );
+    });
+
+    it('returns correct string for command with no command word', () => {
+      const underTest = new Command('');
+      expect(underTest.toString()).toBe('Command()');
+    });
+  });
 });

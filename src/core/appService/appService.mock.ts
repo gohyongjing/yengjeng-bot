@@ -21,7 +21,7 @@ export class MockAppService extends AppService {
     return this.helpText;
   }
 
-  override async processCommand(command: Command, from: User, chatId: number) {
+  override processCommand(command: Command, from: User, chatId: number) {
     this.processCommandCalls.push({ command, from, chatId });
   }
 

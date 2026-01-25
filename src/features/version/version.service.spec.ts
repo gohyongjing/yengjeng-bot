@@ -22,14 +22,17 @@ describe('VersionService', () => {
       const command = new Command('/version');
       underTest.processCommand(command, MockUser, 123456);
 
-      const actualUrl = sendMessage.mock.calls[0][0];
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      const options = sendMessage.mock.calls[0][1];
+      expect(options).toBeDefined();
+      if (!options) throw new Error('Options should be defined');
+      const payload = JSON.parse(options.payload?.toString() ?? '');
+      const text = payload.text;
 
-      expect(
-        actualUrl.includes(encodeURIComponent('Yeng Jeng Bot')),
-      ).toBeTruthy();
-      expect(actualUrl.includes(`v${underTest.major.toString()}`)).toBeTruthy();
-      expect(actualUrl.includes(`.${underTest.minor.toString()}`)).toBeTruthy();
-      expect(actualUrl.includes(`.${underTest.patch.toString()}`)).toBeTruthy();
+      expect(text).toContain('Yeng Jeng Bot');
+      expect(text).toContain(`v${underTest.major.toString()}`);
+      expect(text).toContain(`.${underTest.minor.toString()}`);
+      expect(text).toContain(`.${underTest.patch.toString()}`);
     });
   });
 

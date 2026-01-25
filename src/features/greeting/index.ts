@@ -1,1 +1,1 @@
-export { GreetingService } from './greeting.service';
+export { greetingFeature } from './feature';

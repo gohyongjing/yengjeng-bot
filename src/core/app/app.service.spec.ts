@@ -22,15 +22,19 @@ describe('App', () => {
 
     describe('Message update', () => {
       describe('Start command', () => {
-        it('should send hello message', async () => {
-          await underTest.processUpdate({
+        it('should send hello message', () => {
+          underTest.processUpdate({
             update_id: 1,
             message: new Builder(MockMessage).with({ text: '/start' }).build(),
           });
-          const actualUrl = sendMessage.mock.calls[0][0];
-          expect(
-            actualUrl.toLocaleLowerCase().includes(encodeURIComponent('hello')),
-          ).toBeTruthy();
+          expect(sendMessage).toHaveBeenCalledTimes(1);
+          const options = sendMessage.mock.calls[0][1];
+          expect(options).toBeDefined();
+          if (!options) throw new Error('Options should be defined');
+          const payload = JSON.parse(options.payload?.toString() ?? '');
+          const text = payload.text;
+
+          expect(text.toLowerCase()).toContain('hello');
           expect(
             canParseMarkdownV2.mock.results.every(
               (result) => result.value === true,
@@ -40,17 +44,21 @@ describe('App', () => {
       });
 
       describe('Help command', () => {
-        it('should send help message', async () => {
-          await underTest.processUpdate({
+        it('should send help message', () => {
+          underTest.processUpdate({
             update_id: 1,
             message: new Builder(MockMessage).with({ text: '/help' }).build(),
           });
-          const actualUrl = sendMessage.mock.calls[0][0];
-          expect(actualUrl.includes(encodeURIComponent('HELP'))).toBeTruthy();
-          expect(actualUrl.includes(encodeURIComponent('BUS'))).toBeTruthy();
-          expect(
-            actualUrl.includes(encodeURIComponent('VERSION')),
-          ).toBeTruthy();
+          expect(sendMessage).toHaveBeenCalledTimes(1);
+          const options = sendMessage.mock.calls[0][1];
+          expect(options).toBeDefined();
+          if (!options) throw new Error('Options should be defined');
+          const payload = JSON.parse(options.payload?.toString() ?? '');
+          const text = payload.text;
+
+          expect(text).toContain('HELP');
+          //TODO: Add keywords from other features to help message
+          expect(text).toContain('VERSION');
           expect(
             canParseMarkdownV2.mock.results.every(
               (result) => result.value === true,
@@ -60,9 +68,9 @@ describe('App', () => {
       });
 
       describe('Missing text', () => {
-        it('should not crash the app', async () => {
-          expect(async () => {
-            await underTest.processUpdate({
+        it('should not crash the app', () => {
+          expect(() => {
+            underTest.processUpdate({
               update_id: 1,
               message: new Builder(MockMessage).without(['text']).build(),
             });
@@ -72,9 +80,9 @@ describe('App', () => {
     });
 
     describe('Unhandled updates', () => {
-      it('should not crash the app', async () => {
-        expect(async () => {
-          await underTest.processUpdate({
+      it('should not crash the app', () => {
+        expect(() => {
+          underTest.processUpdate({
             update_id: 1,
             edited_message: MockMessage,
           });

@@ -135,7 +135,7 @@ export class SpreadsheetService {
     const range = this.getRange(lookupColumnNumber, lookupValue);
 
     if (range) {
-      range.deleteCells(GoogleAppsScript.Spreadsheet.Dimension.ROWS);
+      range.deleteCells(SpreadsheetApp.Dimension.ROWS);
       return true;
     }
 
