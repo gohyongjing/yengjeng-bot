@@ -65,7 +65,7 @@ export function handleCommand(
     TelegramService.sendMessage({
       chatId: chatId,
       markdown: new MarkdownBuilder(
-        `Unknown command: ${nextArg}\n\n${descriptions}`,
+        `Unknown command: ${commandPrefix} ${feature.commandWord} ${nextArg}\n\n${descriptions}`,
       ),
       replyMarkup: {
         inline_keyboard: buttons,

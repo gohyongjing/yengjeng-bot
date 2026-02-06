@@ -10,7 +10,6 @@ export const busFeature: Feature = {
     text: constants.FEATURE_BUTTON_TEXT,
     callback_data: constants.FEATURE_BUTTON_CALLBACK,
   },
-  help: constants.FEATURE_HELP,
   subFeatures: [
     getBusStopArrivalTimingsFeature,
     getPreviousBusStopArrivalTimingsFeature,

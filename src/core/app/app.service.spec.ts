@@ -56,7 +56,14 @@ describe('App', () => {
           const payload = JSON.parse(options.payload?.toString() ?? '');
           const text = payload.text;
 
-          expect(text).toContain('HELP');
+          expect(text).toContain('help');
+          expect(text).toContain('start');
+          expect(text).toContain('version');
+          expect(text).toContain('user');
+          expect(text).toContain('friend');
+          expect(text).toContain('bus');
+          expect(text).toContain('Scrabble');
+
           //TODO: Add keywords from other features to help message
           expect(
             canParseMarkdownV2.mock.results.every(
