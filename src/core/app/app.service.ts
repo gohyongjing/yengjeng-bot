@@ -2,10 +2,8 @@ import { LoggerService } from '@core/logger';
 import { TelegramService, Update, User } from '@core/telegram';
 import { hasKey } from '@core/util/predicates';
 import { FriendService } from '@features/friend';
-import { HelpService } from '@features/help';
 import { ScrabbleService } from '@features/scrabble';
 import { UserService } from '@features/user';
-import { VersionService } from '@features/version';
 import { AppService } from '../appService/appService.type';
 import { MarkdownBuilder } from '@core/util/markdownBuilder';
 import { ErrorService } from '@core/error/error.service';
@@ -13,8 +11,9 @@ import {
   handleCommand,
   parseCommandWithState,
 } from '@features/command/command.service';
-import { busFeature } from '@features/bus';
-import { greetingFeature } from '@features/greeting';
+import { features as coreFeatures } from '@core/features';
+import { helpFeature } from '@features/help';
+import { constants as helpConstants } from '@features/help/help.constants';
 import { Feature } from '@features/command/types/feature';
 import { CommandV2 } from '@features/command/types/command';
 
@@ -27,12 +26,9 @@ export class App {
     new FriendService(),
     new ScrabbleService(),
     new UserService(),
-    new VersionService(),
   ];
 
-  features: Feature[] = [greetingFeature, busFeature];
-
-  helpService: HelpService = new HelpService(this.services);
+  features: Feature[] = [...coreFeatures, helpFeature];
 
   processUpdate(update: Update) {
     try {
@@ -56,7 +52,10 @@ export class App {
       if (service) {
         service.processUpdate(update);
       } else {
-        this.helpService.processUpdate(update);
+        TelegramService.sendMessage({
+          chatId,
+          markdown: new MarkdownBuilder(helpConstants.UNKNOWN_COMMAND_MESSAGE),
+        });
       }
     } catch (error) {
       this.handleError(update, error);

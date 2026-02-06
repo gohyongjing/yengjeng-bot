@@ -9,17 +9,18 @@ export const constants = {
 
   // Feature descriptions and UI text
   FEATURE_COMMAND_WORD: 'bus',
-  FEATURE_DESCRIPTION: 'Get bus arrival timings',
+  FEATURE_DESCRIPTION: 'Get bus arrival timings of any Singapore bus stop',
   FEATURE_BUTTON_TEXT: '🚌 Bus Timings',
   FEATURE_BUTTON_CALLBACK: '/bus',
-  FEATURE_HELP: 'Get bus arrival timings of any Singapore bus stop',
+  FEATURE_HELP:
+    'Use `bus_stop` to get bus arrival timings of a specific bus stop and `prev` to get the previously requested bus stop',
 
   // Sub-feature descriptions
   BUS_STOP_COMMAND_WORD: 'bus_stop',
   BUS_STOP_DESCRIPTION: 'Get bus arrival timings of a specific bus stop',
   BUS_STOP_BUTTON_TEXT: '🚏 Bus Stop',
   BUS_STOP_BUTTON_CALLBACK: '/bus bus_stop',
-  BUS_STOP_HELP: 'Get bus arrival timings of a specific bus stop',
+  BUS_STOP_HELP: 'Enter the bus stop ID to retrieve the bus arrival timings',
 
   PREV_COMMAND_WORD: 'prev',
   PREV_DESCRIPTION:

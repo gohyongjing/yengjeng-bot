@@ -1,8 +1,9 @@
 export const constants = {
   // Feature descriptions and UI text
   FEATURE_COMMAND_WORD: 'start',
-  FEATURE_DESCRIPTION: "Hello! I'm Yeng Jeng Bot!",
-  FEATURE_HELP: 'Start using Yeng Jeng bot :)',
+  FEATURE_DESCRIPTION:
+    'Registers you as a user and provides a list of features to get started',
+  FEATURE_HELP: 'Select any of the features to get started!',
 
   // Greeting message
   GREETING_MESSAGE_PREFIX: 'Hello',

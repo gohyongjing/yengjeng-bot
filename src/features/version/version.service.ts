@@ -1,11 +1,4 @@
-import { AppService } from '@core/appService';
-import { TelegramService, User } from '@core/telegram';
-import { MarkdownBuilder } from '@core/util/markdownBuilder';
-import { Command } from '@core/util/command';
-
-export class VersionService extends AppService {
-  override APP_SERVICE_COMMAND_WORD = 'version';
-
+export class VersionService {
   major: number = 0;
   minor: number = 5;
   patch: number = 0;
@@ -23,22 +16,6 @@ export class VersionService extends AppService {
     '0.1.1': ['Fix bug causing failed fetching of last retrieved bus stop'],
     '0.1.0': ['Use cristobalgvera/ez-clasp template to manage yengjeng bot'],
   };
-
-  override help(): string {
-    return '*VERSION*\nVERSION: Retrieves the version number of Yeng Jeng bot';
-  }
-
-  override processCommand(
-    _command: Command,
-    _from: User,
-    chatId: number,
-  ): void {
-    const responseText = `Yeng Jeng Bot\n${this.getVersion()}`;
-    TelegramService.sendMessage({
-      chatId,
-      markdown: new MarkdownBuilder(responseText),
-    });
-  }
 
   getVersion(): string {
     return `v${this.major}.${this.minor}.${this.patch}`;
