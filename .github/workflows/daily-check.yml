@@ -1,7 +1,7 @@
 name: Daily Check
 on:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 jobs:
   report:
@@ -11,4 +11,5 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: "Analyse the codebase and check for any issues or bugs. Generate a summary of the issues and bugs."
-          claude_args: "--model opus"
+permissions:
+  id-token: write
