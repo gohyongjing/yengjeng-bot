@@ -10,6 +10,7 @@ export class FriendData {
   constructor() {
     this.loggerService = new LoggerService();
     this.spreadsheetService = new SpreadsheetService(FriendData.SHEET_NAME, [
+      'Id',
       'User1 Id',
       'User2 Id',
       'Created At',
