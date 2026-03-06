@@ -11,5 +11,6 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: "Analyse the codebase and check for any issues or bugs. Generate a summary of the issues and bugs."
+          show_full_output: true
 permissions:
   id-token: write
