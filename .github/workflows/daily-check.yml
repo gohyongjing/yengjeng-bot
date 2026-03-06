@@ -1,7 +1,7 @@
-name: Daily Check
+name: Codebase Check
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  # schedule:
+    # - cron: "0 0 * * *"
   workflow_dispatch:
 jobs:
   report:
@@ -15,7 +15,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          prompt: "Analyse the codebase and check for any issues or bugs. Generate a summary of the issues and bugs."
+          prompt: "Analyse the codebase and check for any issues or bugs. Generate a summary of the issues and bugs and open a github issue for each issue."
           show_full_output: true
 permissions:
   id-token: write
